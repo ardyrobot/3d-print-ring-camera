@@ -9,8 +9,19 @@ Two print options:
 1. **Solid block** (primary): one piece, fixed 8°. This section.
 2. **[Adjustable mount](#adjustable-mount-option-2)** (secondary): a camera
    shell that pivots over a base, set from 3° to 15° in 2° clicks.
+3. **[Slide mount](#slide-mount-option-3)** (secondary): adjustable 3°–15°
+   with **no metal hardware** apart from the two screws into the wall. The
+   shell slides on curved dovetail rails and locks with a printed pin.
 
 **[View the model in 3D →](stl/ring_mount.stl)** (GitHub shows STL files in an interactive viewer)
+
+**Animated demo:** [`demo.html`](demo.html) plays a 90-second walkthrough
+(the sketch, both options, the parts, installing each) from the real STLs.
+To watch it locally, serve the repo folder (`python -m http.server 8765
+--bind 127.0.0.1`) and open `http://localhost:8765/demo.html`. It is also
+published as a private Claude artifact. Before republishing, regenerate its
+model pack with `python tools/pack_demo.py <out.js>`, because the artifact
+host doesn't serve `.stl` files.
 
 | 3D | Camera face | Countersink side | Top |
 |---|---|---|---|
@@ -111,6 +122,57 @@ clamp load, and there is no UV rating. One user review says it is a modified
 PLA rather than ABS. Use **PETG** for the outdoor part (the 3D45 prints it),
 and prefer a light colour, which runs cooler in sun.
 
+## Slide mount (option 3)
+
+| 3° | 15° | Underside: lock pin and labels | Fit test |
+|---|---|---|---|
+| ![3 degrees](docs/slide-3-top.png) | ![15 degrees](docs/slide-15-top.png) | ![Underside](docs/slide-3-under.png) | ![Fit test](docs/slide-fit-test-3d.png) |
+
+3D: [at 3°](stl/slide_assembly_3.stl) · [at 15°](stl/slide_assembly_15.stl)
+(viewing only; print the parts below).
+
+**How it works.** The base's front is a curve around a virtual pivot behind
+the wall, carrying two curved dovetail rails. The shell's back has matching
+grooves. Sliding the shell along the rails turns the camera away from the
+mounting surface. The dovetails hold the shell in every other direction, so
+there is no hinge and no bolt. **Locking:** a printed pin pushes up from
+underneath. The shell's bottom has 7 holes, each engraved with its angle.
+Under them, the base has 7 holes laid out so each pair lines up at exactly
+one angle. Slide until the pin goes into the hole marked with the angle you
+want. The grooves' closed end stops the slide just past 15°. **Weather:**
+hoods cover the base's top and bottom, the pin holes face down, and there is
+a drain.
+
+| STL | Print orientation (as exported) |
+|---|---|
+| `stl/slide_fit_test.stl` | **Print this first.** The bottom 26 mm of base and shell plus a pin: checks the dovetail slide and the pin fit. |
+| `stl/slide_base.stl` | Standing on its bottom face. Rails print without supports (30° flanks). |
+| `stl/slide_shell.stl` | Camera face down. |
+| `stl/slide_pin.stl` | Lying on a small flat, so layers run along the pin (strongest in shear). |
+
+**Hardware:** 2 wood screws (about Ø3.5 × 65 mm: the head seats 40 mm into
+the base at `screw_seat_x`, plus about 25 mm into the frame). Nothing else.
+
+**Assembly** `[unverified: not yet test-assembled]`:
+
+1. On the bench, slide the shell onto the base's rails from the open side,
+   to 3°, and push the pin into the hole marked 3.
+2. Feed the cable through the back. Hold the mount in the corner and drive
+   the two screws through the counterbores on its open side. At 3° they
+   sit below the shell.
+3. To set the angle: pull the pin out from below, slide the shell, and push
+   the pin into the hole for the new angle.
+4. Wire the camera through the window and screw it to the face.
+
+**Differs from options 1 and 2 by design:** the cable hole is at x = 30 (not
+17) so it lands in the pocket, the screws are lower (y = 10) to stay clear of
+the shell, and the shell is up to 69 mm wide at 15° because it slides toward
+the open side.
+
+**Checks in `build.ps1`:** no collisions at all seven angles with the pin in
+its hole, and a wrong-hole test (shell at 5°, pin in the "3" hole) that must
+be blocked. That second test proves the check can fail.
+
 ## Changing the design
 
 The `.scad` files are the single source of truth. The STLs and preview
@@ -121,6 +183,7 @@ images are generated from them. Never edit those by hand.
 | `ring_common.scad` | Ring hole pattern, shared by both options |
 | `ring_mount.scad` | Solid block |
 | `ring_mount_adjustable.scad` | Adjustable mount (`part` selects base / shell / washer / fit_test / assembly) |
+| `ring_mount_slide.scad` | Slide mount (`part` selects base / shell / pin / fit_test / assembly) |
 
 1. Edit a value at the top of the right file. To see it live, open the file
    in OpenSCAD (Start menu → OpenSCAD (Nightly)) and press F5.
@@ -200,6 +263,24 @@ edit the `.scad` file and rebuild; don't edit the table.
       *Gate: fit test passed.*
 - [ ] **Adjustable: outdoor material.** Confirm PETG is on hand. Reprint the
       prototype in PETG for outdoor use. *Gate: prototype passed.*
+- [ ] **Adjustable: clamp robustness.** The toothed washer is small
+      (14 × 13 mm, 0.9 mm teeth), sticks out where it can be knocked, and
+      one M4 bolt carries the load. Its strength is unverified. If the fit test
+      or prototype shows weakness: a larger washer, taller teeth, or a second
+      clamp bolt. Option 3 avoids this design entirely.
+- [ ] **Slide: fit test.** Print `slide_fit_test.stl` and check the dovetail
+      slide (`dove_clr`) and the pin fit (`pin_free`, `pin_snug`). Tune and
+      record the final values here.
+- [ ] **Slide: pin retention.** The pin is held by a 0.1 mm interference fit
+      at the bottom of the base hole. Check that it stays put and can still be
+      pulled by hand. *Gate: fit test.*
+- [ ] **Slide: groove ends.** The grooves are open on the open side, so rain
+      running down that side could enter them. They're horizontal and
+      drain out, but check this on site.
+- [ ] **Slide: wrong-angle risk on the bench.** Before mounting, the shell can
+      slide below 3°, and at 1° the hole marked 11 happens to line up. Once
+      mounted, the frame stops the shell at about 2°. Only use the holes
+      between 3° and 15°.
 - [ ] **Adjustable: water.** A drain hole in the shell's bottom plate covers
       water that gets in. At steep angles there is a gap of up to about 4 mm
       between the shell's deep edge and the mounting surface. Check on site
@@ -215,6 +296,7 @@ edit the `.scad` file and rebuild; don't edit the table.
 ring_common.scad              Ring hole pattern (shared)
 ring_mount.scad               solid block (edit this)
 ring_mount_adjustable.scad    adjustable mount (edit this)
+ring_mount_slide.scad         slide mount, option 3 (edit this)
 build.ps1                     rebuild all STLs + previews + checks
 stl/ring_mount.stl            generated: solid block
 stl/adjustable_*.stl          generated: base, shell, washer, fit test, assemblies

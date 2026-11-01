@@ -26,6 +26,11 @@ MODELS = [
       ("Shell", "stl/adjustable_shell.stl"),
       ("Washer", "stl/adjustable_washer.stl"),
       ("Fit test (3 pieces, as laid out)", "stl/adjustable_fit_test.stl")]),
+    ("Slide mount (option 3)", "ring_mount_slide.scad",
+     [("Base", "stl/slide_base.stl"),
+      ("Shell", "stl/slide_shell.stl"),
+      ("Pin", "stl/slide_pin.stl"),
+      ("Fit test (3 pieces, as laid out)", "stl/slide_fit_test.stl")]),
 ]
 SKIP_SECTIONS = {"Render", "Quality"}
 

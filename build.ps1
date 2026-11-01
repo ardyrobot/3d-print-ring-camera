@@ -62,6 +62,31 @@ foreach ($a in 3, 5, 7, 9, 11, 13, 15) {
     Write-Host "clash check $a deg: clear"
 }
 
+# ---- Slide mount (option 3): printable parts ----
+$sld = 'ring_mount_slide.scad'
+foreach ($p in 'base', 'shell', 'pin', 'fit_test') {
+    Export $sld "stl/slide_$p.stl" @{ part = "\`"$p\`"" }
+    Check "stl/slide_$p.stl"
+}
+Preview stl/slide_fit_test.stl slide-fit-test @('3d')
+foreach ($a in 3, 15) {
+    Export $sld "stl/slide_assembly_$a.stl" @{ part = '\"assembly\"'; assembly_angle = $a }
+    Preview "stl/slide_assembly_$a.stl" "slide-$a" @('3d', 'top', 'under')
+}
+
+# Slide clash check at every angle (pin in its own hole must fit), then one
+# wrong-hole test that must be blocked, proving the check can fail.
+foreach ($a in 3, 5, 7, 9, 11, 13, 15) {
+    $out = & $openscad --backend=manifold --export-format=binstl -D 'part=\"clash\"' `
+        -D "assembly_angle=$a" -o $tmp $sld 2>&1 | Out-String
+    if ($out -notmatch 'top level object is empty') { throw "Slide parts collide at $a degrees" }
+    Write-Host "slide clash check $a deg: clear"
+}
+$out = & $openscad --backend=manifold --export-format=binstl -D 'part=\"clash\"' `
+    -D 'assembly_angle=5' -D 'pin_label=3' -o $tmp $sld 2>&1 | Out-String
+if ($out -match 'top level object is empty') { throw 'Slide lock accepted a wrong hole' }
+Write-Host 'slide wrong-hole test: blocked'
+
 # Measurements table, generated from the .scad parameters and the STLs above
 python tools/param_table.py
 if ($LASTEXITCODE) { throw 'Measurements table failed' }

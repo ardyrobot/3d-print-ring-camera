@@ -1,0 +1,626 @@
+<meta charset="utf-8">
+<title>Angled Camera Mount</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: a 16:9 "studio sweep" stage like a video player, captions inside it,
+   chapter strip and notes below. Deliberately single (light) theme: it is a
+   product shot, and the stage must look the same on any host. */
+:root {
+  color-scheme: light;
+  --page: #f3f4f5;
+  --sweep-top: #eef0f1;
+  --sweep-bottom: #c9ced2;
+  --ink: #1f2428;
+  --muted: #5a656d;
+  --line: #d5d9dc;
+  --accent: #1f6f78;        /* teal: the washer, the "click" */
+  --accent-soft: #d8ecee;
+  --caption-bg: rgba(255, 255, 255, 0.82);
+  --display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --body: "IBM Plex Sans", "Segoe UI", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, "Cascadia Mono", Consolas, monospace;
+}
+body {
+  background: var(--page); color: var(--ink); font-family: var(--body);
+  font-size: 15px; line-height: 1.5;
+}
+.wrap {
+  max-width: 1120px; margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 28px 48px;
+  display: grid; gap: 18px;
+}
+header { display: grid; gap: 4px; }
+.eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4.4vw, 44px); line-height: 1.05; margin: 0; text-wrap: balance; letter-spacing: -0.01em; }
+.lede { margin: 0; color: var(--muted); max-width: 62ch; }
+
+.stage {
+  position: relative; width: 100%; max-width: 100%; aspect-ratio: 16 / 9;
+  border-radius: 10px; overflow: hidden;
+  background: radial-gradient(120% 90% at 50% 20%, var(--sweep-top), var(--sweep-bottom));
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04), 0 18px 40px -24px rgba(20,30,40,0.45);
+}
+.stage canvas { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+
+.caption {
+  position: absolute; left: 3%; bottom: 5%; max-width: min(56%, 520px);
+  background: var(--caption-bg); backdrop-filter: blur(6px);
+  border-radius: 8px; padding: 12px 16px 14px; display: grid; gap: 4px;
+  transition: opacity 0.4s ease;
+}
+.caption .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
+.caption h2 { font-family: var(--display); font-weight: 600; font-size: clamp(16px, 2.3vw, 24px); line-height: 1.15; margin: 0; text-wrap: balance; }
+.caption p { margin: 0; font-size: clamp(12px, 1.35vw, 14px); color: var(--muted); }
+.steps { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font-size: clamp(12px, 1.3vw, 14px); }
+.steps li { display: grid; grid-template-columns: 1.6em 1fr; color: var(--muted); transition: color 0.3s; }
+.steps li span { font-family: var(--mono); }
+.steps li.on { color: var(--ink); font-weight: 500; }
+.steps li.on span { color: var(--accent); }
+.note { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-top: 4px; }
+
+.readout {
+  position: absolute; right: 4%; top: 6%; text-align: right;
+  font-family: var(--mono); color: var(--ink); line-height: 1;
+  transition: opacity 0.4s ease;
+}
+.readout .deg { font-size: clamp(34px, 6vw, 68px); font-weight: 500; font-variant-numeric: tabular-nums; }
+.readout .lbl { font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
+.readout .ticks { display: flex; gap: 4px; justify-content: flex-end; margin-top: 8px; }
+.readout .ticks i { width: 10px; height: 4px; border-radius: 2px; background: var(--line); }
+.readout .ticks i.on { background: var(--accent); }
+
+.title-card {
+  position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 10px;
+  padding: 24px; transition: opacity 0.6s ease;
+}
+.title-card h2 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 56px); margin: 0; line-height: 1.02; text-wrap: balance; }
+.title-card p { margin: 0; color: var(--muted); font-size: clamp(13px, 1.6vw, 17px); }
+.title-card .pill { justify-self: center; font-family: var(--mono); font-size: 12px; padding: 4px 10px; border-radius: 99px; background: var(--accent-soft); color: var(--accent); }
+.loading { position: absolute; left: 50%; bottom: 8%; transform: translateX(-50%); font-family: var(--mono); font-size: 13px; color: var(--muted); }
+
+.controls { display: grid; grid-template-columns: auto 1fr auto; gap: 12px; align-items: center; }
+.btn {
+  font: 500 14px var(--body); color: #fff; background: var(--ink); border: 0; border-radius: 6px;
+  padding: 8px 14px; cursor: pointer; min-width: 84px;
+}
+.btn:focus-visible, .chip:focus-visible, input[type=range]:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.time { font-family: var(--mono); font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  font: 500 13px var(--body); color: var(--ink); background: #fff; border: 1px solid var(--line);
+  border-radius: 99px; padding: 5px 12px; cursor: pointer;
+}
+.chip.on { background: var(--accent-soft); border-color: var(--accent); color: var(--accent); }
+
+.notes { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 18px; padding-top: 6px; border-top: 1px solid var(--line); }
+.notes section { min-width: 0; display: grid; gap: 4px; align-content: start; }
+.notes h3 { font-family: var(--display); font-weight: 600; font-size: 17px; margin: 0; }
+.notes p { margin: 0; color: var(--muted); max-width: 62ch; }
+.notes a { color: var(--accent); }
+code { font-family: var(--mono); font-size: 0.92em; }
+
+@media (max-width: 640px) {
+  .caption { max-width: 92%; left: 4%; right: 4%; bottom: 4%; padding: 8px 10px 10px; }
+  .caption p, .steps { display: none; }
+  .readout .ticks, .readout .lbl { display: none; }
+}
+</style>
+
+<div class="wrap">
+  <header>
+    <div class="eyebrow">Open-source 3D print · two options</div>
+    <h1>Angled Camera Mount</h1>
+    <p class="lede">From one pencil sketch to two printable mounts for a doorbell camera:
+      a solid 8° block, and an adjustable version that clicks from 3° to 15°.</p>
+  </header>
+
+  <div class="stage" id="stage" aria-label="Animated demonstration of both mounts">
+    <canvas id="gl"></canvas>
+    <div class="title-card" id="titleCard">
+      <span class="pill">90 second demo</span>
+      <h2>One drawing.<br>Two mounts.</h2>
+      <p>Press Play, or pick a chapter below.</p>
+    </div>
+    <div class="readout" id="readout" style="opacity:0" aria-hidden="true">
+      <div class="deg" id="deg">9°</div>
+      <div class="lbl">camera angle</div>
+      <div class="ticks" id="ticks"></div>
+    </div>
+    <div class="caption" id="caption" style="opacity:0" aria-live="polite">
+      <div class="kicker" id="capKicker"></div>
+      <h2 id="capTitle"></h2>
+      <p id="capBody"></p>
+      <ol class="steps" id="capSteps"></ol>
+      <div class="note" id="capNote"></div>
+    </div>
+    <div class="loading" id="loading">Loading models…</div>
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="play" type="button">Play</button>
+    <input type="range" id="scrub" min="0" max="88" step="0.1" value="0" aria-label="Timeline">
+    <span class="time" id="time">0:00 / 1:28</span>
+  </div>
+  <div class="chips" id="chips"></div>
+
+  <div class="notes">
+    <section>
+      <h3>Where it came from</h3>
+      <p>A hand-drawn sketch: a 55 × 110 mm block, two mounting holes 91.5 mm apart,
+        a wiring pocket and an angle marked "?". Every dimension in the model is tagged
+        as written on the sketch, measured off it, or a design choice.</p>
+    </section>
+    <section>
+      <h3>What you are seeing</h3>
+      <p>The real printable files, loaded straight from the repository and animated in
+        your browser. Not yet test-printed: the install steps show the planned procedure.
+        Designed for Ring-style doorbell cameras; not affiliated with Ring.</p>
+    </section>
+    <section>
+      <h3>Get the files</h3>
+      <p>STLs, the OpenSCAD source, measurements and build scripts:
+        <a href="https://github.com/ardyrobot/3d-print-ring-camera" target="_blank" rel="noopener">github.com/ardyrobot/3d-print-ring-camera</a></p>
+    </section>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+(() => {
+  // ---------- geometry constants (from ring_mount_adjustable.scad) ----------
+  const D2R = Math.PI / 180;
+  const HX = 6.5, HY = 30;                 // hinge axis
+  const FACE_FRONT = 15;                   // hinge axis to camera face (shell frame)
+  const CLAMP_Z = 70, CLAMP_A = -10;       // clamp bolt height and direction
+  const WASHER_FACE = 53.7666;             // R_out + washer_t
+  const SOLID_FACE_ANGLE = 8;
+  const ANGLES = [3, 5, 7, 9, 11, 13, 15];
+
+  const $ = (id) => document.getElementById(id);
+  const ease = (x) => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
+  const seg = (u, a, b) => ease((u - a) / (b - a));       // eased 0..1 over [a,b]
+  const lerp = (a, b, t) => a + (b - a) * t;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  // ---------- renderer ----------
+  const canvas = $('gl');
+  let renderer;
+  try {
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+  } catch (e) {
+    $('loading').textContent = 'This demo needs WebGL. The STL files are on GitHub.';
+    return;
+  }
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.localClippingEnabled = true;
+  renderer.outputEncoding = THREE.sRGBEncoding;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;   // keeps the light filament from blowing out
+  renderer.toneMappingExposure = 0.9;
+
+  const scene = new THREE.Scene();
+  const cam = new THREE.PerspectiveCamera(30, 16 / 9, 1, 5000);
+
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa1a7, 0.75));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+  sun.position.set(180, 320, 260);
+  sun.castShadow = true;
+  sun.shadow.mapSize.set(2048, 2048);
+  Object.assign(sun.shadow.camera, { left: -260, right: 260, top: 260, bottom: -260, near: 10, far: 1200 });
+  sun.shadow.bias = -0.0004;
+  scene.add(sun);
+  const fill = new THREE.DirectionalLight(0xdfe8ee, 0.35);
+  fill.position.set(-200, 120, -80);
+  scene.add(fill);
+
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.ShadowMaterial({ opacity: 0.16 }));
+  ground.rotation.x = -Math.PI / 2;
+  ground.receiveShadow = true;
+  scene.add(ground);
+
+  // Everything model-side lives in "world": model Z (up) becomes three.js Y.
+  const world = new THREE.Group();
+  world.rotation.x = -Math.PI / 2;
+  scene.add(world);
+  const M = (x, y, z) => new THREE.Vector3(x, z, -y);   // model coords -> three coords
+
+  // ---------- materials ----------
+  const mat = (color, rough = 0.62, extra = {}) =>
+    new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0, ...extra });
+  const MAT = {
+    bone: mat(0xcfc6b4),            // light filament: runs cooler in sun
+    graphite: mat(0x4b5258),
+    teal: mat(0x1f6f78, 0.5),
+    steel: mat(0xaab1b7, 0.35, { metalness: 0.7 }),
+    wall: mat(0xe3e5e6, 0.95),
+    trim: mat(0xd2cdc4, 0.9),
+    cable: mat(0x2a2e31, 0.6),
+    device: mat(0x24282b, 0.45),
+    lens: mat(0x0d0f10, 0.2),
+  };
+  const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1000);
+
+  // ---------- STL loading ----------
+  // Published copies can't serve .stl, so they ship demo_models.js (made by
+  // tools/pack_demo.py). Locally the real STLs are fetched directly.
+  let packed = null;
+  async function stlBytes(url) {
+    if (!packed) {
+      const res = await fetch(url).catch(() => null);
+      if (res && res.ok) return res.arrayBuffer();
+      await new Promise((ok, fail) => {
+        const s = document.createElement('script');
+        s.src = 'demo_models.js'; s.onload = ok;
+        s.onerror = () => fail(new Error('model files not found'));
+        document.head.appendChild(s);
+      });
+      packed = window.DEMO_MODELS;
+    }
+    const bin = atob(packed[url]);
+    const buf = new Uint8Array(bin.length);
+    for (let i = 0; i < bin.length; i++) buf[i] = bin.charCodeAt(i);
+    return buf.buffer;
+  }
+
+  async function loadSTL(url) {
+    const dv = new DataView(await stlBytes(url));
+    const n = dv.getUint32(80, true);
+    const pos = new Float32Array(n * 9);
+    let o = 84;
+    for (let i = 0; i < n; i++) {
+      o += 12;                                   // skip stored normal
+      for (let k = 0; k < 9; k++) { pos[i * 9 + k] = dv.getFloat32(o, true); o += 4; }
+      o += 2;
+    }
+    const g = new THREE.BufferGeometry();
+    g.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    g.computeVertexNormals();                    // unshared vertices -> flat facets
+    return g;
+  }
+
+  function part(geom, material, clip = false) {
+    const g = new THREE.Group();
+    const m = material.clone();
+    if (clip) m.clippingPlanes = [clipPlane];
+    const mesh = new THREE.Mesh(geom, m);
+    mesh.castShadow = true; mesh.receiveShadow = true;
+    const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geom, 28),
+      new THREE.LineBasicMaterial({ color: 0x1f2428, transparent: true, opacity: 0.45,
+        clippingPlanes: clip ? [clipPlane] : null }));
+    g.add(mesh, edges);
+    return g;
+  }
+
+  function cyl(r, h, material, segs = 24) {   // along model +Z from 0 to h
+    const geo = new THREE.CylinderGeometry(r, r, h, segs);
+    geo.rotateX(Math.PI / 2); geo.translate(0, 0, h / 2);
+    const m = new THREE.Mesh(geo, material); m.castShadow = true; return m;
+  }
+
+  function bolt(len, headR = 3.5, headH = 2.8) {        // head at z=0, shank down -z
+    const g = new THREE.Group();
+    const shank = cyl(2, len, MAT.steel); shank.position.z = -len;
+    const head = cyl(headR, headH, MAT.steel, 6);
+    g.add(shank, head);
+    return g;
+  }
+
+  function woodScrew(len) {                              // head at x=0, tip toward -x
+    const g = new THREE.Group();
+    const s = cyl(1.75, len, MAT.steel); s.rotation.y = -Math.PI / 2;
+    const headGeo = new THREE.CylinderGeometry(4, 1.75, 2.5, 20);
+    headGeo.rotateZ(-Math.PI / 2); headGeo.translate(-1.25, 0, 0);   // wide end flush at x=0
+    const h = new THREE.Mesh(headGeo, MAT.steel); h.castShadow = true;
+    g.add(s, h);
+    return g;
+  }
+
+  function device() {                                    // generic doorbell camera, no branding
+    const g = new THREE.Group();
+    const body = new THREE.Mesh(new THREE.BoxGeometry(46, 22, 104), MAT.device);
+    body.castShadow = true;
+    const lens = cyl(7, 1.5, MAT.lens, 32); lens.rotation.x = -Math.PI / 2; lens.position.set(0, 11, 30);
+    const ring = cyl(9, 1, MAT.steel, 32); ring.rotation.x = -Math.PI / 2; ring.position.set(0, 10.6, -28);
+    g.add(body, lens, ring);
+    return g;
+  }
+
+  // ---------- scene objects (filled after loading) ----------
+  const O = {};
+  async function build() {
+    // Sequential so the packed-file fallback loads once
+    const gSolid = await loadSTL('stl/ring_mount.stl');
+    const gBase = await loadSTL('stl/adjustable_base.stl');
+    const gShell = await loadSTL('stl/adjustable_shell.stl');
+    const gWasher = await loadSTL('stl/adjustable_washer.stl');
+    // Undo the print orientations baked into the exported STLs (see the .scad "part" branches)
+    gShell.translate(0, 0, -FACE_FRONT); gShell.rotateX(Math.PI / 2);          // -> shell frame
+    gWasher.translate(CLAMP_Z, 0, -WASHER_FACE); gWasher.rotateY(-Math.PI / 2); // -> bolt frame
+
+    // Sketch on the desk, rotated so it reads from the front
+    const tex = new THREE.TextureLoader().load('docs/sketch.webp');
+    tex.encoding = THREE.sRGBEncoding;
+    tex.anisotropy = 4;
+    O.paper = new THREE.Mesh(new THREE.PlaneGeometry(210, 289),
+      new THREE.MeshStandardMaterial({ map: tex, color: 0xb9bbbd, roughness: 0.95, transparent: true }));
+    O.paper.position.set(27.5, 40, 0.3);
+    O.paper.rotation.z = Math.PI;
+    O.paper.receiveShadow = true;
+    world.add(O.paper);
+
+    // Option 1
+    O.solid = new THREE.Group();
+    O.solid.add(part(gSolid, MAT.bone, true));
+    O.solidDevice = device();
+    {
+      const a = SOLID_FACE_ANGLE * D2R, cx = 27.5;
+      const cy = 46 - cx * Math.tan(a);                 // face depth at the centre
+      // place(d): seat the device d mm out along the face normal (0 = mounted)
+      O.solidDevice.place = (d) => O.solidDevice.position.set(
+        cx + Math.sin(a) * (11.2 + d), cy + Math.cos(a) * (11.2 + d), 55);
+      O.solidDevice.place(0);
+      O.solidDevice.rotation.z = -a;
+    }
+    O.solid.add(O.solidDevice);
+    O.solidScrews = [22, 88].map((z) => { const s = woodScrew(75); s.position.set(55, 19.5, z); O.solid.add(s); return s; });
+    world.add(O.solid);
+
+    // Option 2
+    O.adj = new THREE.Group();
+    O.base = part(gBase, MAT.graphite);
+    O.shellPivot = new THREE.Group(); O.shellPivot.position.set(HX, HY, 0);
+    O.shellSlide = new THREE.Group();
+    O.shellSlide.add(part(gShell, MAT.bone));
+    O.adjDevice = device(); O.adjDevice.position.set((-6.5 + 48.5) / 2, FACE_FRONT + 11.2, 55);
+    O.shellSlide.add(O.adjDevice);
+    O.shellPivot.add(O.shellSlide);
+    O.washerPivot = new THREE.Group(); O.washerPivot.position.set(HX, HY, 0); O.washerPivot.rotation.z = CLAMP_A * D2R;
+    O.washer = part(gWasher, MAT.teal);
+    O.clampBolt = bolt(20); O.clampBolt.rotation.y = Math.PI / 2; // head outward (+x), shank inward
+    O.clampBolt.position.set(WASHER_FACE, 0, CLAMP_Z);
+    O.washerPivot.add(O.washer, O.clampBolt);
+    O.hingeTop = bolt(16); O.hingeTop.position.set(HX, HY, 110);
+    O.hingeBot = bolt(16); O.hingeBot.rotation.x = Math.PI; O.hingeBot.position.set(HX, HY, 0);
+    O.adjScrews = [22, 88].map((z) => { const s = woodScrew(65); s.position.set(40, 19.5, z); O.adj.add(s); return s; });
+    O.adj.add(O.base, O.shellPivot, O.washerPivot, O.hingeTop, O.hingeBot);
+    world.add(O.adj);
+
+    // Install context: inside corner (side surface at x=0, wall at y=0) and the cable
+    O.site = new THREE.Group();
+    const side = new THREE.Mesh(new THREE.BoxGeometry(6, 150, 190), MAT.trim);
+    side.position.set(-3, 75, 85); side.receiveShadow = true;
+    const back = new THREE.Mesh(new THREE.BoxGeometry(190, 6, 190), MAT.wall);
+    back.position.set(89, -3, 85); back.receiveShadow = true;
+    O.cable = cyl(3, 60, MAT.cable); O.cable.rotation.x = -Math.PI / 2; O.cable.position.set(17, -40, 35);
+    O.site.add(side, back, O.cable);
+    world.add(O.site);
+  }
+
+  // ---------- timeline ----------
+  const S = [
+    { id: 'sketch',   t0: 0,  t1: 9,  chip: 'The sketch' },
+    { id: 'solid',    t0: 9,  t1: 22, chip: 'Solid block' },
+    { id: 'adjust',   t0: 22, t1: 38, chip: 'Adjustable' },
+    { id: 'explode',  t0: 38, t1: 48, chip: 'The parts' },
+    { id: 'install1', t0: 48, t1: 62, chip: 'Install: solid' },
+    { id: 'install2', t0: 62, t1: 80, chip: 'Install: adjustable' },
+    { id: 'end',      t0: 80, t1: 88, chip: 'Both options' },
+  ];
+  const DURATION = 88;
+
+  const CAP = {
+    sketch:   { k: 'Where it started', t: 'A pencil sketch with one question mark',
+                b: '55 × 110 mm, a wiring pocket, two holes 91.5 mm apart, and an angle marked "?".' },
+    solid:    { k: 'Option 1', t: 'The solid block',
+                b: 'One piece. The camera face turns 8°. The wiring pocket sits behind the camera; the cable comes in from the back.' },
+    adjust:   { k: 'Option 2', t: 'The adjustable mount',
+                b: 'The shell pivots over the base from 3° to 15° in 2° clicks. Teeth hold the angle, so it cannot creep.' },
+    explode:  { k: 'Option 2', t: 'Three printed parts, three M4 bolts',
+                b: 'Base, shell and a toothed washer. Once the shell is on, the base’s screws are hidden.' },
+    install1: { k: 'Install · option 1', t: 'Fitting the solid block',
+                steps: ['Feed the cable through the back.', 'Screw through the side into the frame.', 'Mount the camera on the face.'],
+                n: 'Planned procedure · not yet test-installed' },
+    install2: { k: 'Install · option 2', t: 'Fitting the adjustable mount',
+                steps: ['Screw the base on through its curved side.', 'Slide the shell on and fit the hinge bolts.', 'Set the angle; clamp the washer.', 'Mount the camera.'],
+                n: 'Planned procedure · not yet test-assembled' },
+    end:      { k: 'Open source', t: 'One drawing. Two mounts.',
+                b: 'OpenSCAD source, STLs and measurements on GitHub. Print the solid block, or the adjustable one.' },
+  };
+
+  // Camera poses in model coordinates
+  const orbit = (deg, r, z, tx = 27, ty = 23, tz = 55) =>
+    ({ p: [tx + r * Math.cos(deg * D2R), ty + r * Math.sin(deg * D2R), z], t: [tx, ty, tz] });
+  const CAM = {
+    sketch:   (u) => { const a = { p: [27, 330, 380], t: [27, 40, 0] }, b = orbit(55, 260, 150, 27, 23, 45); return mix(a, b, seg(u, 0.25, 1)); },
+    solid:    (u) => orbit(lerp(55, 150, ease(u)), 240, lerp(150, 110, u)),
+    adjust:   (u) => mix({ p: [70, 210, 300], t: [27, 25, 50] }, { p: [40, 175, 330], t: [27, 25, 50] }, ease(u)),
+    explode:  (u) => orbit(lerp(40, 70, u), 290, 170, 40, 20, 55),
+    install1: (u) => orbit(lerp(62, 48, u), 345, 190, 35, 25, 62),
+    install2: (u) => orbit(lerp(48, 64, u), 345, 190, 35, 25, 62),
+    end:      (u) => mix({ p: [10, 400, 230], t: [-15, 20, 50] }, { p: [-5, 430, 250], t: [-15, 20, 50] }, ease(u)),
+  };
+  function mix(a, b, t) { return { p: a.p.map((v, i) => lerp(v, b.p[i], t)), t: a.t.map((v, i) => lerp(v, b.t[i], t)) }; }
+
+  // Shell angle during the adjust scene: click through 3..15 then settle on 9
+  function adjustAngle(u) {
+    const seq = [3, 5, 7, 9, 11, 13, 15, 9];
+    const x = Math.min(u / 0.92, 0.9999) * (seq.length - 1);
+    const i = Math.floor(x), f = x - i;
+    const snap = f < 0.65 ? 0 : ease((f - 0.65) / 0.35);      // dwell, then click to next
+    return lerp(seq[i], seq[Math.min(i + 1, seq.length - 1)], snap);
+  }
+
+  // ---------- apply state for time t ----------
+  let lastCapId = '';
+  function apply(t) {
+    const si = Math.max(0, S.findIndex((s) => t >= s.t0 && t < s.t1));
+    const s = t >= DURATION ? S[S.length - 1] : S[si];
+    const u = Math.min(1, Math.max(0, (t - s.t0) / (s.t1 - s.t0)));
+
+    // defaults
+    O.paper.visible = false; O.paper.material.opacity = 1;
+    O.solid.visible = false; O.solid.position.set(0, 0, 0);
+    O.solidDevice.visible = false; O.solidDevice.place(0); O.solidScrews.forEach((x) => (x.visible = false));
+    clipPlane.constant = 1000;
+    O.adj.visible = false; O.adj.position.set(0, 0, 0);
+    O.base.position.set(0, 0, 0);
+    O.shellPivot.visible = true; O.shellSlide.position.set(0, 0, 0);
+    O.adjDevice.visible = false; O.adjDevice.position.y = FACE_FRONT + 11.2;
+    O.washer.visible = true; O.washer.position.set(0, 0, 0);
+    O.clampBolt.visible = true; O.clampBolt.position.x = WASHER_FACE;
+    O.hingeTop.visible = O.hingeBot.visible = true;
+    O.hingeTop.position.z = 110; O.hingeBot.position.z = 0;
+    O.adjScrews.forEach((x) => (x.visible = false));
+    O.site.visible = false; O.cable.visible = true;
+    let angle = 9, readout = 0, activeStep = -1;
+
+    switch (s.id) {
+      case 'sketch':
+        O.paper.visible = true; O.solid.visible = true;
+        clipPlane.constant = lerp(0, 112, seg(u, 0.3, 0.95));
+        break;
+      case 'solid':
+        O.paper.visible = u < 0.2; O.paper.material.opacity = 1 - seg(u, 0, 0.2);
+        O.solid.visible = true;
+        break;
+      case 'adjust':
+        O.solid.visible = u < 0.12; O.solid.position.x = lerp(0, -160, seg(u, 0, 0.12));
+        O.adj.visible = u > 0.04; O.adj.position.x = lerp(170, 0, seg(u, 0.04, 0.16));
+        angle = u < 0.16 ? 9 : adjustAngle((u - 0.16) / 0.84);
+        readout = seg(u, 0.14, 0.2);
+        break;
+      case 'explode': {
+        O.adj.visible = true;
+        const e = seg(u, 0.05, 0.4) * (1 - seg(u, 0.7, 0.95));
+        O.shellSlide.position.x = 70 * e;
+        O.washer.position.x = 34 * e; O.clampBolt.position.x = WASHER_FACE + 58 * e;
+        O.hingeTop.position.z = 110 + 45 * e; O.hingeBot.position.z = -45 * e;
+        break;
+      }
+      case 'install1':
+        O.site.visible = true; O.solid.visible = true;
+        O.cable.position.y = lerp(-95, -40, seg(u, 0, 0.18));
+        O.solid.position.set(lerp(140, 0, seg(u, 0.18, 0.38)), lerp(90, 0, seg(u, 0.18, 0.38)), 0);
+        O.solidScrews.forEach((x) => { x.visible = u > 0.4; x.position.x = lerp(140, 55, seg(u, 0.42, 0.62)); });
+        O.solidDevice.visible = u > 0.66;
+        O.solidDevice.place(lerp(90, 0, seg(u, 0.66, 0.86)));
+        activeStep = u < 0.38 ? 0 : u < 0.64 ? 1 : 2;
+        break;
+      case 'install2': {
+        O.site.visible = true; O.adj.visible = true;
+        O.cable.position.y = -40;
+        const baseIn = seg(u, 0, 0.12);
+        O.base.position.set(lerp(140, 0, baseIn), lerp(90, 0, baseIn), 0);
+        O.adjScrews.forEach((x) => { x.visible = u > 0.12; x.position.x = lerp(130, 40, seg(u, 0.14, 0.3)); });
+        O.shellPivot.visible = u > 0.32;
+        O.shellSlide.position.x = lerp(110, 0, seg(u, 0.32, 0.5));
+        const pins = seg(u, 0.5, 0.6);
+        O.hingeTop.visible = O.hingeBot.visible = u > 0.5;
+        O.hingeTop.position.z = 110 + 50 * (1 - pins); O.hingeBot.position.z = -50 * (1 - pins);
+        angle = u < 0.6 ? 9 : lerp(9, 13, seg(u, 0.6, 0.68)) - lerp(0, 4, seg(u, 0.68, 0.74));
+        O.washer.visible = O.clampBolt.visible = u > 0.74;
+        O.washer.position.x = 30 * (1 - seg(u, 0.74, 0.82));
+        O.clampBolt.position.x = WASHER_FACE + 50 * (1 - seg(u, 0.78, 0.86));
+        O.adjDevice.visible = u > 0.87;
+        O.adjDevice.position.y = FACE_FRONT + 11.2 + lerp(90, 0, seg(u, 0.87, 0.98));
+        readout = seg(u, 0.6, 0.64) * (1 - seg(u, 0.86, 0.9));
+        activeStep = u < 0.3 ? 0 : u < 0.6 ? 1 : u < 0.87 ? 2 : 3;
+        break;
+      }
+      case 'end':
+        O.solid.visible = true; O.solid.position.x = -85;
+        O.adj.visible = true; angle = 15;
+        break;
+    }
+    O.shellPivot.rotation.z = -angle * D2R;
+
+    // camera, blended from the previous scene's last pose over 1.2 s
+    let pose = CAM[s.id](u);
+    const prev = S[S.indexOf(s) - 1];
+    const blend = (t - s.t0) / 1.2;
+    if (prev && blend < 1) pose = mix(CAM[prev.id](1), pose, ease(blend));
+    const p = M(...pose.p), tg = M(...pose.t);
+    cam.position.copy(p); cam.lookAt(tg);
+
+    // overlays
+    $('titleCard').style.opacity = t < 0.6 && !playing ? 1 : 0;
+    $('caption').style.opacity = t < 0.6 && !playing ? 0 : 1;
+    if (lastCapId !== s.id) {
+      const c = CAP[s.id];
+      $('capKicker').textContent = c.k; $('capTitle').textContent = c.t;
+      $('capBody').textContent = c.b || ''; $('capBody').hidden = !c.b;
+      $('capNote').textContent = c.n || ''; $('capNote').hidden = !c.n;
+      $('capSteps').innerHTML = (c.steps || []).map((x, i) => `<li><span>${i + 1}</span>${x}</li>`).join('');
+      $('capSteps').hidden = !c.steps;
+      lastCapId = s.id;
+      document.querySelectorAll('.chip').forEach((el) => el.classList.toggle('on', el.dataset.id === s.id));
+    }
+    [...$('capSteps').children].forEach((li, i) => li.classList.toggle('on', i === activeStep));
+    $('readout').style.opacity = readout;
+    const shown = ANGLES.reduce((best, a) => Math.abs(a - angle) < Math.abs(best - angle) ? a : best, 3);
+    $('deg').textContent = shown + '°';
+    [...$('ticks').children].forEach((el, i) => el.classList.toggle('on', ANGLES[i] <= shown));
+  }
+
+  // ---------- playback ----------
+  let t = 0, playing = false, last = 0;
+  const fmt = (x) => `${Math.floor(x / 60)}:${String(Math.floor(x % 60)).padStart(2, '0')}`;
+  function setPlaying(v) {
+    playing = v;
+    $('play').textContent = v ? 'Pause' : (t >= DURATION ? 'Replay' : 'Play');
+    last = performance.now();
+  }
+  $('play').addEventListener('click', () => {
+    if (!O.solid) return;
+    if (t >= DURATION) t = 0;
+    setPlaying(!playing);
+  });
+  $('scrub').addEventListener('input', (e) => { t = parseFloat(e.target.value); if (playing) last = performance.now(); });
+  $('chips').innerHTML = S.map((s) => `<button class="chip" type="button" data-id="${s.id}">${s.chip}</button>`).join('');
+  $('chips').addEventListener('click', (e) => {
+    const b = e.target.closest('.chip'); if (!b || !O.solid) return;
+    t = S.find((s) => s.id === b.dataset.id).t0 + 0.01;
+    if (!reduceMotion) setPlaying(true);
+  });
+  $('ticks').innerHTML = ANGLES.map(() => '<i></i>').join('');
+
+  function resize() {
+    const r = $('stage').getBoundingClientRect();
+    renderer.setSize(r.width, r.height, false);
+    cam.aspect = r.width / r.height; cam.updateProjectionMatrix();
+  }
+  new ResizeObserver(resize).observe($('stage'));
+
+  function frame(now) {
+    if (playing) {
+      t += (now - last) / 1000; last = now;
+      if (t >= DURATION) { t = DURATION; setPlaying(false); }
+    }
+    if (O.solid) {
+      apply(Math.min(t, DURATION - 0.001));
+      $('scrub').value = t.toFixed(1);
+      $('time').textContent = `${fmt(t)} / ${fmt(DURATION)}`;
+      renderer.render(scene, cam);
+    }
+    requestAnimationFrame(frame);
+  }
+
+  build().then(() => {
+    $('loading').hidden = true;
+    resize();
+    t = 6.5;                       // resting frame: the block rising out of the sketch
+    apply(t); renderer.render(scene, cam);
+    if (!reduceMotion) { t = 0; setPlaying(true); }
+    requestAnimationFrame(frame);
+  }).catch((err) => {
+    $('loading').textContent = 'Could not load the models (' + err.message + ').';
+  });
+})();
+</script>
