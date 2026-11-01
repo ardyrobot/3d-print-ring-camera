@@ -18,6 +18,7 @@ width       = 55;     // [written]
 height      = 110;    // [written]
 depth_deep  = 46;     // [scaled]  depth at the deep (mounting) side
 face_angle  = 8;      // [chosen]  degrees the camera face is turned
+face_chamfer = 1.5;   // [chosen]  45 degree bevel on the camera-face edges; 0 = none
 
 /* [Ring mounting holes] */
 ring_hole_d       = 2.25;  // [written]
@@ -65,6 +66,22 @@ module on_face() {
     translate([face_x0, face_y0, 0]) rotate([0, 0, -face_angle]) children();
 }
 
+// 45 degree bevel around the camera face: a square bar turned 45 degrees about each edge.
+// Top and bottom edges meet square faces, so their bevel is exact; the side faces
+// meet the camera face at 90 +/- face_angle, so the side bevels are slightly uneven.
+module face_chamfers() {
+    face_len = width / cos(face_angle);
+    s = face_chamfer * sqrt(2);
+    if (face_chamfer > 0) on_face() {
+        for (u = [-face_len / 2, face_len / 2])
+            translate([u, 0, height / 2]) rotate([0, 0, 45])
+                cube([s, s, height + 2], center = true);
+        for (z = [0, height])
+            translate([0, 0, z]) rotate([45, 0, 0])
+                cube([face_len + 2, s, s], center = true);
+    }
+}
+
 module ring_holes() {
     for (z = [(height - ring_hole_spacing) / 2, (height + ring_hole_spacing) / 2])
         on_face() translate([0, eps, z]) rotate([90, 0, 0])
@@ -98,6 +115,7 @@ module screw_holes() {
 
 difference() {
     block();
+    face_chamfers();
     ring_holes();
     pocket();
     cable_hole();
