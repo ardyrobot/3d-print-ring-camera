@@ -1,6 +1,9 @@
 """Render orthographic PNG previews of a binary STL (flat shading, z-buffer, edge lines).
 
-Usage: python tools/render_stl.py stl/ring_mount.stl docs
+Usage: python tools/render_stl.py <file.stl> <outdir> [prefix] [view ...]
+  e.g. python tools/render_stl.py stl/ring_mount.stl docs
+       python tools/render_stl.py stl/adjustable_assembly_15.stl docs adjustable-15 3d top
+Writes <outdir>/<prefix>-<view>.png (prefix defaults to "preview", views to all).
 Standard library only. Exists because OpenSCAD's own PNG export fails on this
 laptop ("Unable to create FBO"); rendering the exported STL also means the
 previews show exactly the file that gets printed.
@@ -22,11 +25,11 @@ FACE = math.radians(8)  # display only: camera face angle for the "front" view
 VIEWS = {
     # name: (camera direction from the part, screen-up vector)
     # Model frame: X=0 deep side, X=55 shallow (countersink) side, +Y out of the camera face
-    "preview-3d":    ((0.75, 1.0, 0.6), (0, 0, 1)),
-    "preview-front": ((math.sin(FACE), math.cos(FACE), 0), (0, 0, 1)),
-    "preview-back":  ((0, -1, 0), (0, 0, 1)),
-    "preview-side":  ((1, 0, 0), (0, 0, 1)),
-    "preview-top":   ((0, 0, 1), (0, 1, 0)),
+    "3d":    ((0.75, 1.0, 0.6), (0, 0, 1)),
+    "front": ((math.sin(FACE), math.cos(FACE), 0), (0, 0, 1)),
+    "back":  ((0, -1, 0), (0, 0, 1)),
+    "side":  ((1, 0, 0), (0, 0, 1)),
+    "top":   ((0, 0, 1), (0, 1, 0)),
 }
 
 
@@ -85,9 +88,17 @@ def render(tris, cam, up):
         area = (x1 - x0) * (y2 - y0) - (x2 - x0) * (y1 - y0)
         if abs(area) < 1e-9:
             continue
+        edges = ((x0, y0, x1, y1), (x1, y1, x2, y2), (x2, y2, x0, y0))
         for py in range(max(0, int(min(y0, y1, y2))), min(n - 1, int(max(y0, y1, y2))) + 1):
-            for px in range(max(0, int(min(x0, x1, x2))), min(n - 1, int(max(x0, x1, x2))) + 1):
-                sx, sy = px + 0.5, py + 0.5
+            sy = py + 0.5
+            # Only visit pixels between where this row crosses the triangle's
+            # edges; long thin facets made a bounding-box scan very slow.
+            xs = [ax + (sy - ay) * (bx - ax) / (by - ay)
+                  for ax, ay, bx, by in edges if (ay <= sy) != (by <= sy)]
+            if len(xs) < 2:
+                continue
+            for px in range(max(0, int(min(xs)) - 1), min(n - 1, int(max(xs)) + 1) + 1):
+                sx = px + 0.5
                 w0 = ((x1 - sx) * (y2 - sy) - (x2 - sx) * (y1 - sy)) / area
                 w1 = ((x2 - sx) * (y0 - sy) - (x0 - sx) * (y2 - sy)) / area
                 w2 = 1 - w0 - w1
@@ -154,12 +165,14 @@ def write_png(path, rows):
         f.write(chunk(b"IEND", b""))
 
 
-def main(stl, outdir):
+def main(stl, outdir, prefix="preview", *views):
     tris = load(stl)
-    for name, (cam, up) in VIEWS.items():
-        write_png(f"{outdir}/{name}.png", render(tris, cam, up))
-        print(f"wrote {outdir}/{name}.png")
+    for name in views or VIEWS:
+        cam, up = VIEWS[name]
+        path = f"{outdir}/{prefix}-{name}.png"
+        write_png(path, render(tris, cam, up))
+        print(f"wrote {path}")
 
 
 if __name__ == "__main__":
-    main(sys.argv[1], sys.argv[2])
+    main(*sys.argv[1:])

@@ -20,10 +20,8 @@ depth_deep  = 46;     // [scaled]  depth at the deep (mounting) side
 face_angle  = 8;      // [chosen]  degrees the camera face is turned
 face_chamfer = 1.5;   // [chosen]  45 degree bevel on the camera-face edges; 0 = none
 
-/* [Ring mounting holes] */
-ring_hole_d       = 2.25;  // [written]
-ring_hole_spacing = 91.5;  // [written] centre to centre, vertically centred
-ring_hole_depth   = 12;    // [chosen]  measured into the camera face
+// Ring hole pattern (ring_hole_d, ring_hole_spacing, ring_hole_depth)
+include <ring_common.scad>
 
 /* [Wiring pocket] */
 pocket_z_min      = 30;    // [written] bottom of pocket above block bottom

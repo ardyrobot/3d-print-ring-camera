@@ -9,7 +9,8 @@ import sys
 from collections import Counter
 
 
-def main(path):
+def measure(path):
+    """Return triangles, bbox min, size, volume (mm3) and open-edge count."""
     with open(path, "rb") as f:
         data = f.read()
     if data[:5] == b"solid" and b"facet" in data[:400]:
@@ -37,10 +38,15 @@ def main(path):
 
     size = [h - l for h, l in zip(hi, lo)]
     open_edges = sum(1 for n in edges.values() if n != 2)
+    return count, lo, size, abs(volume), open_edges
+
+
+def main(path):
+    count, lo, size, volume, open_edges = measure(path)
     print(f"triangles : {count}")
     print(f"bbox min  : {lo[0]:.2f}, {lo[1]:.2f}, {lo[2]:.2f}")
     print(f"size X/Y/Z: {size[0]:.2f} x {size[1]:.2f} x {size[2]:.2f} mm")
-    print(f"volume    : {abs(volume) / 1000:.2f} cm3")
+    print(f"volume    : {volume / 1000:.2f} cm3")
     print(f"watertight: {'yes' if open_edges == 0 else f'NO ({open_edges} bad edges)'}")
     return 0 if open_edges == 0 else 1
 
