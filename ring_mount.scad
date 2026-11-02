@@ -88,7 +88,7 @@ module cable_hole() {
 }
 
 module screw_holes() {
-    sink = (screw_head_d - screw_d) / 2;  // 90 degree countersink
+    sink = (screw_head_d - screw_d) / 2 / tan(screw_sink_angle / 2);  // countersink depth
     // Local +Z runs from the shallow side face toward the deep side
     for (z = screw_z) translate([width, screw_y, z]) rotate([0, -90, 0]) {
         translate([0, 0, -eps]) cylinder(d = screw_d, h = width + 2 * eps);

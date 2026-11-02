@@ -79,7 +79,7 @@ washer_t     = 3;    // [chosen] washer thickness beyond the skirt surface
 // pocket_depth (shared) is measured from the back of the camera plate at angle_max
 screw_y           = 19.5;  // [scaled] distance from back face (position not fixed; size is shared)
 screw_z           = [22, 88]; // [scaled] heights
-screw_cbore_d     = 9;     // [chosen] counterbore so heads sit under the skirt
+screw_cbore_d     = 9.4;   // [chosen] counterbore so heads sit under the skirt (#8 head 8.43 mm + clearance)
 screw_seat_x      = 40;    // [chosen] screw head seat; screw length = this + embedment
 
 /* [Scale] */
@@ -282,8 +282,11 @@ module base(z0 = base_z0, z1 = base_z1) {
             cylinder(d = cable_d, h = hinge_y);
 
         // mounting screws through the width, heads hidden under the skirt
+        // (flat-head screws: an 82 degree countersink at the bottom of the counterbore)
+        sink = (screw_head_d - screw_d) / 2 / tan(screw_sink_angle / 2);
         for (z = screw_z) translate([0, screw_y, z]) rotate([0, 90, 0]) {
             translate([0, 0, -eps]) cylinder(d = screw_d, h = width);
+            translate([0, 0, screw_seat_x - sink]) cylinder(d1 = screw_d, d2 = screw_head_d, h = sink + eps);
             translate([0, 0, screw_seat_x]) cylinder(d = screw_cbore_d, h = width);
         }
 

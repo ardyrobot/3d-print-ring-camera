@@ -30,5 +30,9 @@ cable_deep_inset = 17;     // [scaled] centre to deep side (where the wire leave
 /* [Mounting screws] (through the width, into the mounting surface) */
 // Size is shared so every option takes the same screws. Their POSITIONS are not
 // fixed (Cat, 2026-11-01): each model sets its own screw_y / screw_z.
-screw_d      = 3.5;        // [written?] shank clearance; sketch text hard to read
-screw_head_d = 8;          // [written] head / countersink diameter
+// Screws: #8 flat (bevel) head wood screws [fixed by Cat]. Sizes per ASME
+// B18.6.1 as recalled, not looked up: shank 0.164 in (4.17 mm), head up to
+// 0.332 in (8.43 mm), 82 degree head. Measure a real screw to confirm.
+screw_d      = 4.6;        // [fixed] clearance for #8 (4.17 mm shank) so it pulls the mount tight
+screw_head_d = 8.8;        // [fixed] countersink diameter for the #8 head (8.43 mm max)
+screw_sink_angle = 82;     // [fixed] US flat-head angle (metric is 90)

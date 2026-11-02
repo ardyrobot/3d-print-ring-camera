@@ -74,8 +74,9 @@ base (3, 9, 15, with ticks every 2°).
 - 2× M4 × 16 bolts: hinge
 - 1× M4 × 20 bolt: clamp
 - 3× M4 hex nuts: captive in the base
-- 2× wood screws, about Ø3.5 × 65 mm: base to surface. The head seats 40 mm
-  into the base (`screw_seat_x`).
+- 2× #8 flat (bevel) head wood screws, about 65 mm (2½ in) long: base to
+  surface. The head seats 40 mm into the base (`screw_seat_x`), in an 82°
+  countersink.
 
 Bolt lengths are calculated from the model, not yet tested.
 
@@ -167,8 +168,9 @@ the base at `screw_seat_x`, plus about 25 mm into the frame). Nothing else.
 **Same as options 1 and 2** (from `mount_common.scad`): the Ring holes, the
 pocket, and the cable hole position (17 mm from the deep side, 35 mm up),
 which has to match where the wire leaves the wall, and the screw size.
-**Chosen for this design:** the mounting screws sit 10 mm from the back
-(options 1 and 2: 19.5), so the heads are below the shell's path. Screw
+**Chosen for this design:** the mounting screws sit 13 mm from the back
+(options 1 and 2: 19.5), so the heads are below the shell's path, with 8.5 mm
+of plastic behind each counterbore. Screw
 positions aren't fixed; only their size is. The shell is up to 69 mm wide at
 15° because it slides toward the open side.
 
@@ -229,19 +231,30 @@ edit the `.scad` file and rebuild; don't edit the table.
   three views.
 - The screws go through the width, with the countersink on the shallow side.
   So the **deep side sits against the mounting surface**.
+- **Assumption, not confirmed by the client:** the back face sits against a
+  wall, inferred because the cable enters through the back. The designs rely
+  on it in a few places: the wall shares the load, option 2's clamp nut is held
+  in its slot by the wall, and option 3's hoods are trimmed to clear the wall.
 - The pocket floor is parallel to the camera face, so the Ring's back gets the
   same clearance everywhere. The sketch drew it parallel to the back wall.
 
 ## Open items
 
+- [ ] **Confirm the back is against a wall.** It's assumed from the cable
+      entering through the back (see "How the sketch was read"). If it isn't:
+      option 2's clamp nut needs another way to stay in place, and the back
+      face and cable hole need weatherproofing. *Gate: ask the client.*
 - [ ] **Ring model:** identify it and confirm the 91.5 mm hole spacing and
       the screw size. That screw size sets `ring_hole_d` (2.25 mm suits a small
       self-tapping screw) and `ring_hole_depth`. *Gate: Ring model known.*
-- [ ] **Block screw length:** the screws pass through 55 mm of plastic, so
-      they need to be about 75 mm long. A 3.5 mm hole is tight for a typical
-      4 mm wood screw. Decide the screw first, then set `screw_d`, or set
-      `screw_head_recess` to sink the heads and shorten the screws.
-      *Gate: screw chosen.*
+- [ ] **Mounting screws: #8 flat (bevel) head** (chosen by Cat). The model
+      uses a 4.6 mm clearance hole, an 8.8 mm countersink and an 82° head
+      angle, all in `mount_common.scad`. These are standard #8 sizes as I
+      recall them, not looked up. **Measure a real screw** (shank and head
+      diameter) and adjust if needed. The solid block's screws pass through
+      55 mm of plastic, so they need to be about 75 mm (3 in) long, or set
+      `screw_head_recess` to sink the heads and use shorter screws.
+      *Gate: screw measured.*
 - [ ] **Pocket depth:** check that 15 mm clears the Ring's wiring terminals.
       *Gate: Ring model known.*
 - [ ] **Angle:** 8° is a starting value. Check the camera's view on site after
@@ -274,6 +287,11 @@ edit the `.scad` file and rebuild; don't edit the table.
 - [ ] **Slide: fit test.** Print `slide_fit_test.stl` and check the dovetail
       slide (`dove_clr`) and the pin fit (`pin_free`, `pin_snug`). Tune and
       record the final values here.
+- [ ] **Slide: plastic around the screws.** 8.5 mm of plastic behind each
+      counterbore and 3.2 mm toward the curved front at the open side
+      (calculated, not measured). After tightening on the prototype, check
+      for cracks. If any appear: a smaller counterbore (`screw_cbore_d`) or a
+      third screw. *Gate: prototype.*
 - [ ] **Slide: pin retention.** The pin is held by a 0.1 mm interference fit
       at the bottom of the base hole. Check that it stays put and can still be
       pulled by hand. *Gate: fit test.*

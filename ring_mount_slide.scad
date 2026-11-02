@@ -86,7 +86,7 @@ engrave    = 0.6;   // [chosen]
 // pocket_depth (shared) is measured behind the shell back; the floor is curved
 screw_cbore_d = 9;    // [chosen]
 screw_seat_x  = 40;   // [chosen] head seat; driven in from the open side
-screw_y       = 10;   // [chosen] lower than the sketch's 19.5 so the heads sit below the shell's path (screw positions aren't fixed)
+screw_y       = 13;   // [chosen] lower than the sketch's 19.5 so the heads sit below the shell's path (positions aren't fixed); 13 leaves 8.5 mm behind the counterbore
 screw_z       = [22, 88]; // [scaled] heights
 
 $fn = 64;
