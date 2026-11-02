@@ -381,7 +381,11 @@ edit the `.scad` file and rebuild; don't edit the table.
       55 mm of plastic, so they need to be about 75 mm (3 in) long, or set
       `screw_head_recess` to sink the heads and use shorter screws.
       *Gate: screw measured.*
-- [ ] **Pocket depth:** check that 15 mm clears the Ring's wiring terminals.
+- [ ] **Pocket depth:** option 1's pocket is now 20 mm (`block_pocket_depth`,
+      Cat 2026-11-02, for room for the wires); options 2–4 still use the
+      shared 15 mm (`pocket_depth`). Check that the wiring fits in each, and
+      decide whether options 2–4 should go to 20 mm too (that needs a wall
+      check against their hinge, screws and nut slots first).
       *Gate: Ring model known.*
 - [ ] **Angle:** 8° is a starting value. Check the camera's view on site after
       the first print.
