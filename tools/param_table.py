@@ -6,7 +6,8 @@ Run by build.ps1 after the STLs are exported. Standard library only.
 The .scad files stay the single source of truth: this script only reads them.
 It picks up every top-level `name = value; // comment` line above the
 "// ---- derived ----" marker, grouped by the `/* [Section] */` headers, and
-follows `include <...>` so shared values (ring_common.scad) appear too.
+follows `include <...>` so shared values (mount_common.scad) appear too.
+Fails if a model defines a name twice, which would mean it redefines a shared value.
 """
 import os
 import re
@@ -37,7 +38,7 @@ SKIP_SECTIONS = {"Render", "Quality"}
 SECTION = re.compile(r"/\*\s*\[([^\]]+)\]\s*(.*?)\*/")
 INCLUDE = re.compile(r"^\s*include\s*<([^>]+)>")
 PARAM = re.compile(r"^([A-Za-z_]\w*)\s*=\s*([^;]+);\s*(?://\s*(.*))?$")
-TAG = re.compile(r"^\[(written\??|scaled|chosen)\]\s*(.*)$")
+TAG = re.compile(r"^\[(written\??|scaled|chosen|fixed)\]\s*(.*)$")
 
 
 def parse(path, section="General"):
@@ -84,8 +85,17 @@ def model_section(title, scad, stls):
         lines.append(f"| [{label}](../{stl}) | {dims} | {volume / 1000:.2f} | {'yes' if bad == 0 else 'NO'} |")
     lines.append("")
 
+    params = list(parse(os.path.join(ROOT, scad)))
+    # Shared values must have one owner (mount_common.scad). OpenSCAD would let a
+    # model silently redefine one, so treat any repeated name as a build error.
+    seen = set()
+    for _, name, *_ in params:
+        if name in seen:
+            sys.exit(f"{scad}: '{name}' is defined twice (redefining a shared value from mount_common.scad?)")
+        seen.add(name)
+
     current = None
-    for section, name, value, source, note in parse(os.path.join(ROOT, scad)):
+    for section, name, value, source, note in params:
         if section != current:
             current = section
             lines += [f"### {section}", "", "| Parameter | Value | Source | Notes |", "|---|---|---|---|"]
@@ -114,8 +124,12 @@ def main():
         "",
         "Lengths in mm, angles in degrees. Source key: **written** = on the hand",
         "sketch (`written?` = hard to read) · **scaled** = measured off the sketch,",
-        "about ±1 mm · **chosen** = design decision · **tolerance** = print",
-        "clearance, tune with the fit test.",
+        "about ±1 mm · **fixed** = set by Cat · **chosen** = design decision ·",
+        "**tolerance** = print clearance, tune with the fit test.",
+        "",
+        "The fixed measurements (envelope, Ring holes, pocket, cable hole, mounting",
+        "screws) come from [`mount_common.scad`](../mount_common.scad) and are the",
+        "same in every option; the build fails if a model redefines one.",
         "",
         "Axes: X = width (0 = deep side, against the mounting surface) · Y = depth",
         "(0 = back face, cable entry) · Z = height (0 = bottom).",

@@ -9,8 +9,12 @@ was printed. **To change a value, edit it in the `.scad` file and run
 
 Lengths in mm, angles in degrees. Source key: **written** = on the hand
 sketch (`written?` = hard to read) · **scaled** = measured off the sketch,
-about ±1 mm · **chosen** = design decision · **tolerance** = print
-clearance, tune with the fit test.
+about ±1 mm · **fixed** = set by Cat · **chosen** = design decision ·
+**tolerance** = print clearance, tune with the fit test.
+
+The fixed measurements (envelope, Ring holes, pocket, cable hole, mounting
+screws) come from [`mount_common.scad`](../mount_common.scad) and are the
+same in every option; the build fails if a model redefines one.
 
 Axes: X = width (0 = deep side, against the mounting surface) · Y = depth
 (0 = back face, cable entry) · Z = height (0 = bottom).
@@ -25,15 +29,12 @@ Source file: [`ring_mount.scad`](../ring_mount.scad)
 |---|---|---|---|
 | [Block](../stl/ring_mount.stl) | 55.00 × 45.79 × 110.00 | 236.30 | yes |
 
-### Block
+### Envelope
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `width` | 55 | written |  |
+| `width` | 55 | written | block width / camera face width |
 | `height` | 110 | written |  |
-| `depth_deep` | 46 | scaled | depth at the deep (mounting) side |
-| `face_angle` | 8 | chosen | degrees the camera face is turned |
-| `face_chamfer` | 1.5 | chosen | 45 degree bevel on the camera-face edges; 0 = none |
 
 ### Ring mounting holes
 
@@ -51,7 +52,7 @@ Source file: [`ring_mount.scad`](../ring_mount.scad)
 | `pocket_z_max` | 60 | written | top of pocket above block bottom |
 | `pocket_deep_inset` | 9 | scaled | pocket edge to deep side, front view |
 | `pocket_width` | 34.3 | scaled | front-view width |
-| `pocket_depth` | 15 | chosen | perpendicular to the camera face |
+| `pocket_depth` | 15 | fixed | behind the camera plate |
 
 ### Cable hole
 
@@ -59,15 +60,28 @@ Source file: [`ring_mount.scad`](../ring_mount.scad)
 |---|---|---|---|
 | `cable_d` | 8 | written |  |
 | `cable_z` | 35 | scaled | centre height |
-| `cable_deep_inset` | 17 | scaled | centre to deep side |
+| `cable_deep_inset` | 17 | scaled | centre to deep side (where the wire leaves the wall) |
+
+### Mounting screws
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `screw_d` | 3.5 | written? | shank clearance; sketch text hard to read |
+| `screw_head_d` | 8 | written | head / countersink diameter |
+
+### Block
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `depth_deep` | 46 | scaled | depth at the deep (mounting) side |
+| `face_angle` | 8 | chosen | degrees the camera face is turned |
+| `face_chamfer` | 1.5 | chosen | 45 degree bevel on the camera-face edges; 0 = none |
 
 ### Block mounting screws
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `screw_d` | 3.5 | written? | shank clearance; sketch text hard to read |
-| `screw_head_d` | 8 | written | countersink diameter at the surface |
-| `screw_y` | 19.5 | scaled | distance from back face |
+| `screw_y` | 19.5 | scaled | distance from back face (position not fixed; size is shared) |
 | `screw_z` | [22, 88] | scaled | heights |
 | `screw_head_recess` | 0 | chosen | extra counterbore depth to shorten screws |
 
@@ -84,6 +98,13 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 | [Washer](../stl/adjustable_washer.stl) | 14.00 × 13.20 × 4.52 | 0.64 | yes |
 | [Fit test (3 pieces, as laid out)](../stl/adjustable_fit_test.stl) | 78.50 × 78.00 × 32.36 | 32.24 | yes |
 
+### Envelope
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `width` | 55 | written | block width / camera face width |
+| `height` | 110 | written |  |
+
 ### Ring mounting holes
 
 | Parameter | Value | Source | Notes |
@@ -91,6 +112,31 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 | `ring_hole_d` | 2.25 | written | pilot for the Ring bracket screws |
 | `ring_hole_spacing` | 91.5 | written | centre to centre, vertically centred |
 | `ring_hole_depth` | 12 | chosen | measured into the camera face |
+
+### Wiring pocket
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `pocket_z_min` | 30 | written | bottom of pocket above block bottom |
+| `pocket_z_max` | 60 | written | top of pocket above block bottom |
+| `pocket_deep_inset` | 9 | scaled | pocket edge to deep side, front view |
+| `pocket_width` | 34.3 | scaled | front-view width |
+| `pocket_depth` | 15 | fixed | behind the camera plate |
+
+### Cable hole
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `cable_d` | 8 | written |  |
+| `cable_z` | 35 | scaled | centre height |
+| `cable_deep_inset` | 17 | scaled | centre to deep side (where the wire leaves the wall) |
+
+### Mounting screws
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `screw_d` | 3.5 | written? | shank clearance; sketch text hard to read |
+| `screw_head_d` | 8 | written | head / countersink diameter |
 
 ### Print tolerances
 
@@ -104,13 +150,6 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 | `washer_side` | 0.3 | tolerance | washer to track walls, each side |
 | `swing_clr` | 1.0 | tolerance | camera plate and Ring bosses to base, through the swing |
 | `foot_chamfer` | 0.5 | tolerance | base bottom edge, absorbs first-layer squash (elephant's foot) |
-
-### Envelope
-
-| Parameter | Value | Source | Notes |
-|---|---|---|---|
-| `width` | 55 | written |  |
-| `height` | 110 | written |  |
 
 ### Angle range
 
@@ -157,19 +196,10 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `pocket_z_min` | 30 | written |  |
-| `pocket_z_max` | 60 | written |  |
-| `pocket_deep_inset` | 9 | scaled |  |
-| `pocket_width` | 34.3 | scaled |  |
-| `pocket_depth` | 15 | chosen | from back of camera plate at 15 degrees |
-| `cable_d` | 8 | written |  |
-| `cable_z` | 35 | scaled |  |
-| `cable_deep_inset` | 17 | scaled |  |
-| `screw_d` | 3.5 | written? |  |
+| `screw_y` | 19.5 | scaled | distance from back face (position not fixed; size is shared) |
+| `screw_z` | [22, 88] | scaled | heights |
 | `screw_cbore_d` | 9 | chosen | counterbore so heads sit under the skirt |
 | `screw_seat_x` | 40 | chosen | screw head seat; screw length = this + embedment |
-| `screw_y` | 19.5 | scaled |  |
-| `screw_z` | [22, 88] | scaled |  |
 
 ### Scale
 
@@ -178,3 +208,126 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 | `label_angles` | [3, 9, 15] | chosen | numbered ticks |
 | `text_size` | 3.2 | chosen | label height |
 | `engrave` | 0.6 | chosen | engraving depth |
+
+## Slide mount (option 3)
+
+Source file: [`ring_mount_slide.scad`](../ring_mount_slide.scad)
+
+### Built size (from the exported STLs)
+
+| Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
+|---|---|---|---|
+| [Base](../stl/slide_base.stl) | 55.00 × 34.00 × 101.20 | 135.43 | yes |
+| [Shell](../stl/slide_shell.stl) | 55.00 × 110.00 × 43.26 | 85.92 | yes |
+| [Pin](../stl/slide_pin.stl) | 16.99 × 9.60 × 10.00 | 0.42 | yes |
+| [Fit test (3 pieces, as laid out)](../stl/slide_fit_test.stl) | 114.49 × 70.60 × 43.66 | 55.46 | yes |
+
+### Envelope
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `width` | 55 | written | block width / camera face width |
+| `height` | 110 | written |  |
+
+### Ring mounting holes
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `ring_hole_d` | 2.25 | written | pilot for the Ring bracket screws |
+| `ring_hole_spacing` | 91.5 | written | centre to centre, vertically centred |
+| `ring_hole_depth` | 12 | chosen | measured into the camera face |
+
+### Wiring pocket
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `pocket_z_min` | 30 | written | bottom of pocket above block bottom |
+| `pocket_z_max` | 60 | written | top of pocket above block bottom |
+| `pocket_deep_inset` | 9 | scaled | pocket edge to deep side, front view |
+| `pocket_width` | 34.3 | scaled | front-view width |
+| `pocket_depth` | 15 | fixed | behind the camera plate |
+
+### Cable hole
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `cable_d` | 8 | written |  |
+| `cable_z` | 35 | scaled | centre height |
+| `cable_deep_inset` | 17 | scaled | centre to deep side (where the wire leaves the wall) |
+
+### Mounting screws
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `screw_d` | 3.5 | written? | shank clearance; sketch text hard to read |
+| `screw_head_d` | 8 | written | head / countersink diameter |
+
+### Print tolerances
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `gap` | 0.4 | tolerance | shell back to base front |
+| `dove_clr` | 0.3 | tolerance | dovetail rail in groove, every face |
+| `pin_free` | 0.4 | tolerance | pin in the shell hole (slides freely) |
+| `pin_snug` | -0.1 | tolerance | pin in the bottom of the base hole (slight grip) |
+| `swing_clr` | 0.5 | tolerance | shell and hoods to the frame and wall, at the range ends |
+| `foot_chamfer` | 0.5 | tolerance | base bottom edge |
+
+### Angle range
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `angle_min` | 3 | chosen |  |
+| `angle_max` | 15 | chosen |  |
+| `angle_step` | 2 | chosen |  |
+
+### Virtual pivot and arc
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `pivot_x` | 26 | chosen | pivot position (behind the wall, so y < 0) |
+| `pivot_y` | -20 | chosen |  |
+| `arc_r` | 50 | chosen | base front radius around the pivot |
+| `rail_half` | 22 | chosen | rails span arc_mid +/- this many degrees |
+
+### Shell
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `face_y` | 62.4 | chosen | camera face, shell frame (12 mm in front of the shell back) |
+| `wall` | 4 | chosen | hood thickness |
+| `face_chamfer` | 1.5 | chosen | matches the other options |
+| `window_half` | 12 | chosen | wire window half-width |
+| `drain_d` | 3.5 | chosen |  |
+
+### Dovetails
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `rail_z` | [18, 92] | chosen | rail centre heights |
+| `rail_root` | 8 | chosen | rail width where it meets the base |
+| `rail_h` | 4 | chosen | rail height |
+| `dove_angle` | 30 | chosen | flank angle from radial; 30 = prints without supports |
+
+### Lock pin
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `pin_d` | 4.2 | chosen |  |
+| `pin_len` | 14 | chosen | shank length |
+| `pin_head_d` | 10 | chosen |  |
+| `pin_head_t` | 3 | chosen |  |
+| `pin_depth` | 10 | chosen | depth into the base |
+| `pin_rows` | [[44, 20, [3, 7, 11, 15]], [34, 13, [5, 9, 13]]] | chosen | [radius, first shell angle, angles] |
+| `pin_step` | -14 | chosen | shell angle between holes in a row |
+| `label_size` | 3.5 | chosen |  |
+| `engrave` | 0.6 | chosen |  |
+
+### Base
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `screw_cbore_d` | 9 | chosen |  |
+| `screw_seat_x` | 40 | chosen | head seat; driven in from the open side |
+| `screw_y` | 10 | chosen | lower than the sketch's 19.5 so the heads sit below the shell's path (screw positions aren't fixed) |
+| `screw_z` | [22, 88] | scaled | heights |

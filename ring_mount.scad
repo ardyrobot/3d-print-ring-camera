@@ -6,6 +6,8 @@
 //   [scaled]  = measured off the sketch at ~6.7 px/mm (approximate)
 //   [chosen]  = decision made during design; see README "Open questions"
 //
+// Pocket depth is measured perpendicular to the camera face.
+//
 // Coordinate frame (mm):
 //   X = width,  0 = deep side (mounting side), 55 = shallow side (countersink side)
 //   Y = depth,  0 = back face (cable entry), +Y points out of the camera face
@@ -13,34 +15,19 @@
 // Looking at the camera face (sketch "front view"): shallow side on the left,
 // deep side on the right. The camera face turns toward the shallow side.
 
+// Fixed measurements shared by all options: width, height, Ring holes, pocket,
+// cable hole, mounting screws. Edit them in mount_common.scad, not here.
+include <mount_common.scad>
+
 /* [Block] */
-width       = 55;     // [written]
-height      = 110;    // [written]
 depth_deep  = 46;     // [scaled]  depth at the deep (mounting) side
 face_angle  = 8;      // [chosen]  degrees the camera face is turned
 face_chamfer = 1.5;   // [chosen]  45 degree bevel on the camera-face edges; 0 = none
 
-// Ring hole pattern (ring_hole_d, ring_hole_spacing, ring_hole_depth)
-include <ring_common.scad>
-
-/* [Wiring pocket] */
-pocket_z_min      = 30;    // [written] bottom of pocket above block bottom
-pocket_z_max      = 60;    // [written] top of pocket above block bottom
-pocket_deep_inset = 9;     // [scaled]  pocket edge to deep side, front view
-pocket_width      = 34.3;  // [scaled]  front-view width
-pocket_depth      = 15;    // [chosen]  perpendicular to the camera face
-
-/* [Cable hole] */
-cable_d           = 8;     // [written]
-cable_z           = 35;    // [scaled]  centre height
-cable_deep_inset  = 17;    // [scaled]  centre to deep side
-
-/* [Block mounting screws] (through the width, X axis) */
-screw_d           = 3.5;   // [written?] shank clearance; sketch text hard to read
-screw_head_d      = 8;     // [written] countersink diameter at the surface
-screw_y           = 19.5;  // [scaled]  distance from back face
+/* [Block mounting screws] */
+screw_y           = 19.5;     // [scaled] distance from back face (position not fixed; size is shared)
 screw_z           = [22, 88]; // [scaled] heights
-screw_head_recess = 0;     // [chosen]  extra counterbore depth to shorten screws
+screw_head_recess = 0;        // [chosen] extra counterbore depth to shorten screws
 
 /* [Quality] */
 $fn = 64;

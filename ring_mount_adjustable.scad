@@ -26,7 +26,9 @@
 // The shell is modelled in its own frame: origin on the hinge axis, +X along the
 // camera face toward the shallow side, +Y out of the face. on_shell(a) places it.
 
-include <ring_common.scad>
+// Fixed measurements shared by all options: width, height, Ring holes, pocket,
+// cable hole, mounting screws. Edit them in mount_common.scad, not here.
+include <mount_common.scad>
 
 /* [Render] */
 part           = "assembly";  // [assembly, base, shell, washer, fit_test, clash]
@@ -43,10 +45,6 @@ nut_t        = 3.6;   // M4 nut thickness (3.2) + clearance
 washer_side  = 0.3;   // washer to track walls, each side
 swing_clr    = 1.0;   // camera plate and Ring bosses to base, through the swing
 foot_chamfer = 0.5;   // base bottom edge, absorbs first-layer squash (elephant's foot)
-
-/* [Envelope] */
-width  = 55;   // [written]
-height = 110;  // [written]
 
 /* [Angle range] */
 angle_min  = 3;   // [chosen]
@@ -78,19 +76,11 @@ washer_h     = 14;   // [chosen]
 washer_t     = 3;    // [chosen] washer thickness beyond the skirt surface
 
 /* [Base] */
-pocket_z_min      = 30;    // [written]
-pocket_z_max      = 60;    // [written]
-pocket_deep_inset = 9;     // [scaled]
-pocket_width      = 34.3;  // [scaled]
-pocket_depth      = 15;    // [chosen] from back of camera plate at 15 degrees
-cable_d           = 8;     // [written]
-cable_z           = 35;    // [scaled]
-cable_deep_inset  = 17;    // [scaled]
-screw_d           = 3.5;   // [written?]
+// pocket_depth (shared) is measured from the back of the camera plate at angle_max
+screw_y           = 19.5;  // [scaled] distance from back face (position not fixed; size is shared)
+screw_z           = [22, 88]; // [scaled] heights
 screw_cbore_d     = 9;     // [chosen] counterbore so heads sit under the skirt
 screw_seat_x      = 40;    // [chosen] screw head seat; screw length = this + embedment
-screw_y           = 19.5;  // [scaled]
-screw_z           = [22, 88]; // [scaled]
 
 /* [Scale] */
 label_angles = [3, 9, 15]; // [chosen] numbered ticks

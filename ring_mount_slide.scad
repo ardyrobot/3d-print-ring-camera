@@ -28,7 +28,9 @@
 // The shell is modelled in its own frame: origin on the pivot, +Y toward the
 // camera face. on_shell(a) turns it clockwise by a about the pivot.
 
-include <ring_common.scad>
+// Fixed measurements shared by all options: width, height, Ring holes, pocket,
+// cable hole, mounting screws. Edit them in mount_common.scad, not here.
+include <mount_common.scad>
 
 /* [Render] */
 part           = "assembly";  // [assembly, base, shell, pin, fit_test, clash]
@@ -42,10 +44,6 @@ pin_free     = 0.4;   // pin in the shell hole (slides freely)
 pin_snug     = -0.1;  // pin in the bottom of the base hole (slight grip)
 swing_clr    = 0.5;   // shell and hoods to the frame and wall, at the range ends
 foot_chamfer = 0.5;   // base bottom edge
-
-/* [Envelope] */
-width  = 55;   // [written] base width; also the shell face width
-height = 110;  // [written]
 
 /* [Angle range] */
 angle_min  = 3;   // [chosen]
@@ -85,18 +83,11 @@ label_size = 3.5;   // [chosen]
 engrave    = 0.6;   // [chosen]
 
 /* [Base] */
-pocket_z_min  = 30;   // [written]
-pocket_z_max  = 60;   // [written]
-pocket_depth  = 15;   // [chosen] behind the shell back
-pocket_span   = [-5, 23]; // [chosen] pocket angular span, base frame
-cable_d       = 8;    // [written]
-cable_x       = 30;   // [chosen] moved from 17 so the cable lands inside the pocket
-cable_z       = 35;   // [scaled]
-screw_d       = 3.5;  // [written?]
+// pocket_depth (shared) is measured behind the shell back; the floor is curved
 screw_cbore_d = 9;    // [chosen]
 screw_seat_x  = 40;   // [chosen] head seat; driven in from the open side
-screw_y       = 10;   // [chosen] low enough to stay clear of the shell at 3 deg
-screw_z       = [22, 88]; // [scaled]
+screw_y       = 10;   // [chosen] lower than the sketch's 19.5 so the heads sit below the shell's path (screw positions aren't fixed)
+screw_z       = [22, 88]; // [scaled] heights
 
 $fn = 64;
 
@@ -207,12 +198,14 @@ module base(z0 = base_z0, z1 = base_z1) {
             for (z = rail_z) if (z > z0 && z < z1)
                 translate([pivot_x, pivot_y, z]) arc_extrude(arc_mid - rail_half, arc_mid + rail_half) dove_2d();
         }
-        // wiring pocket: a curved slot whose floor is pocket_depth behind the shell back
-        translate([pivot_x, pivot_y, pocket_z_min]) linear_extrude(pocket_z_max - pocket_z_min)
-            polygon(concat([for (a = [pocket_span[0] : 2 : pocket_span[1]]) polar(R_shell - pocket_depth, a)],
-                           [for (a = [pocket_span[1] : -2 : pocket_span[0]]) polar(arc_r + 10, a)]));
+        // wiring pocket: the sketch footprint (x and z), with a curved floor
+        // pocket_depth behind the shell back
+        translate([0, 0, pocket_z_min]) linear_extrude(pocket_z_max - pocket_z_min) difference() {
+            translate([pocket_deep_inset, 0]) square([pocket_width, 200]);
+            translate(P) circle(r = R_shell - pocket_depth, $fn = 360);
+        }
         // cable from the back face into the pocket
-        translate([cable_x, -eps, cable_z]) rotate([-90, 0, 0]) cylinder(d = cable_d, h = 40);
+        translate([cable_deep_inset, -eps, cable_z]) rotate([-90, 0, 0]) cylinder(d = cable_d, h = 40);
         // mounting screws through the width, driven from the open side
         for (z = screw_z) translate([0, screw_y, z]) rotate([0, 90, 0]) {
             translate([0, 0, -eps]) cylinder(d = screw_d, h = width + 1);

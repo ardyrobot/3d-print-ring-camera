@@ -164,10 +164,13 @@ the base at `screw_seat_x`, plus about 25 mm into the frame). Nothing else.
    the pin into the hole for the new angle.
 4. Wire the camera through the window and screw it to the face.
 
-**Differs from options 1 and 2 by design:** the cable hole is at x = 30 (not
-17) so it lands in the pocket, the screws are lower (y = 10) to stay clear of
-the shell, and the shell is up to 69 mm wide at 15° because it slides toward
-the open side.
+**Same as options 1 and 2** (from `mount_common.scad`): the Ring holes, the
+pocket, and the cable hole position (17 mm from the deep side, 35 mm up),
+which has to match where the wire leaves the wall, and the screw size.
+**Chosen for this design:** the mounting screws sit 10 mm from the back
+(options 1 and 2: 19.5), so the heads are below the shell's path. Screw
+positions aren't fixed; only their size is. The shell is up to 69 mm wide at
+15° because it slides toward the open side.
 
 **Checks in `build.ps1`:** no collisions at all seven angles with the pin in
 its hole, and a wrong-hole test (shell at 5°, pin in the "3" hole) that must
@@ -180,7 +183,7 @@ images are generated from them. Never edit those by hand.
 
 | File | Owns |
 |---|---|
-| `ring_common.scad` | Ring hole pattern, shared by both options |
+| `mount_common.scad` | **Fixed measurements shared by all three options**: envelope, Ring holes (91.5 mm apart), pocket, cable hole, mounting screw size. Change one here and every option follows; the build fails if a model redefines one. Screw *positions* are not fixed, so each model sets its own. |
 | `ring_mount.scad` | Solid block |
 | `ring_mount_adjustable.scad` | Adjustable mount (`part` selects base / shell / washer / fit_test / assembly) |
 | `ring_mount_slide.scad` | Slide mount (`part` selects base / shell / pin / fit_test / assembly) |
@@ -293,7 +296,7 @@ edit the `.scad` file and rebuild; don't edit the table.
 ## Repo layout
 
 ```
-ring_common.scad              Ring hole pattern (shared)
+mount_common.scad             fixed measurements shared by all options
 ring_mount.scad               solid block (edit this)
 ring_mount_adjustable.scad    adjustable mount (edit this)
 ring_mount_slide.scad         slide mount, option 3 (edit this)
