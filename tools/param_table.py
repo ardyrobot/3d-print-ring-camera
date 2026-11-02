@@ -32,6 +32,11 @@ MODELS = [
       ("Shell", "stl/slide_shell.stl"),
       ("Pin", "stl/slide_pin.stl"),
       ("Fit test (3 pieces, as laid out)", "stl/slide_fit_test.stl")]),
+    ("Pivot mount (option 4)", "ring_mount_pivot.scad",
+     [("Base (with roof)", "stl/pivot_base.stl"),
+      ("Shell", "stl/pivot_shell.stl"),
+      ("Washer", "stl/pivot_washer.stl"),
+      ("Fit test (3 pieces, as laid out)", "stl/pivot_fit_test.stl")]),
 ]
 SKIP_SECTIONS = {"Render", "Quality"}
 

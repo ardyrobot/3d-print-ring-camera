@@ -27,7 +27,7 @@ Source file: [`ring_mount.scad`](../ring_mount.scad)
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Block](../stl/ring_mount.stl) | 55.00 × 45.79 × 110.00 | 236.30 | yes |
+| [Block](../stl/ring_mount.stl) | 55.00 × 45.79 × 110.00 | 235.52 | yes |
 
 ### Envelope
 
@@ -66,8 +66,9 @@ Source file: [`ring_mount.scad`](../ring_mount.scad)
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `screw_d` | 3.5 | written? | shank clearance; sketch text hard to read |
-| `screw_head_d` | 8 | written | head / countersink diameter |
+| `screw_d` | 4.6 | fixed | clearance for #8 (4.17 mm shank) so it pulls the mount tight |
+| `screw_head_d` | 8.8 | fixed | countersink diameter for the #8 head (8.43 mm max) |
+| `screw_sink_angle` | 82 | fixed | US flat-head angle (metric is 90) |
 
 ### Block
 
@@ -93,7 +94,7 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Base](../stl/adjustable_base.stl) | 52.76 × 39.35 × 101.20 | 149.71 | yes |
+| [Base](../stl/adjustable_base.stl) | 52.76 × 39.35 × 101.20 | 148.92 | yes |
 | [Shell](../stl/adjustable_shell.stl) | 57.27 × 110.00 × 32.36 | 45.55 | yes |
 | [Washer](../stl/adjustable_washer.stl) | 14.00 × 13.20 × 4.52 | 0.64 | yes |
 | [Fit test (3 pieces, as laid out)](../stl/adjustable_fit_test.stl) | 78.50 × 78.00 × 32.36 | 32.24 | yes |
@@ -135,8 +136,9 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `screw_d` | 3.5 | written? | shank clearance; sketch text hard to read |
-| `screw_head_d` | 8 | written | head / countersink diameter |
+| `screw_d` | 4.6 | fixed | clearance for #8 (4.17 mm shank) so it pulls the mount tight |
+| `screw_head_d` | 8.8 | fixed | countersink diameter for the #8 head (8.43 mm max) |
+| `screw_sink_angle` | 82 | fixed | US flat-head angle (metric is 90) |
 
 ### Print tolerances
 
@@ -198,7 +200,7 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 |---|---|---|---|
 | `screw_y` | 19.5 | scaled | distance from back face (position not fixed; size is shared) |
 | `screw_z` | [22, 88] | scaled | heights |
-| `screw_cbore_d` | 9 | chosen | counterbore so heads sit under the skirt |
+| `screw_cbore_d` | 9.4 | chosen | counterbore so heads sit under the skirt (#8 head 8.43 mm + clearance) |
 | `screw_seat_x` | 40 | chosen | screw head seat; screw length = this + embedment |
 
 ### Scale
@@ -217,10 +219,10 @@ Source file: [`ring_mount_slide.scad`](../ring_mount_slide.scad)
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Base](../stl/slide_base.stl) | 55.00 × 34.00 × 101.20 | 135.43 | yes |
+| [Base](../stl/slide_base.stl) | 55.00 × 34.00 × 101.20 | 134.87 | yes |
 | [Shell](../stl/slide_shell.stl) | 55.00 × 110.00 × 43.26 | 85.92 | yes |
 | [Pin](../stl/slide_pin.stl) | 16.99 × 9.60 × 10.00 | 0.42 | yes |
-| [Fit test (3 pieces, as laid out)](../stl/slide_fit_test.stl) | 114.49 × 70.60 × 43.66 | 55.46 | yes |
+| [Fit test (3 pieces, as laid out)](../stl/slide_fit_test.stl) | 114.49 × 70.60 × 43.66 | 55.18 | yes |
 
 ### Envelope
 
@@ -259,8 +261,9 @@ Source file: [`ring_mount_slide.scad`](../ring_mount_slide.scad)
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `screw_d` | 3.5 | written? | shank clearance; sketch text hard to read |
-| `screw_head_d` | 8 | written | head / countersink diameter |
+| `screw_d` | 4.6 | fixed | clearance for #8 (4.17 mm shank) so it pulls the mount tight |
+| `screw_head_d` | 8.8 | fixed | countersink diameter for the #8 head (8.43 mm max) |
+| `screw_sink_angle` | 82 | fixed | US flat-head angle (metric is 90) |
 
 ### Print tolerances
 
@@ -331,3 +334,134 @@ Source file: [`ring_mount_slide.scad`](../ring_mount_slide.scad)
 | `screw_seat_x` | 40 | chosen | head seat; driven in from the open side |
 | `screw_y` | 13 | chosen | lower than the sketch's 19.5 so the heads sit below the shell's path (positions aren't fixed); 13 leaves 8.5 mm behind the counterbore |
 | `screw_z` | [22, 88] | scaled | heights |
+
+## Pivot mount (option 4)
+
+Source file: [`ring_mount_pivot.scad`](../ring_mount_pivot.scad)
+
+### Built size (from the exported STLs)
+
+| Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
+|---|---|---|---|
+| [Base (with roof)](../stl/pivot_base.stl) | 57.27 × 45.32 × 103.60 | 154.62 | yes |
+| [Shell](../stl/pivot_shell.stl) | 57.27 × 105.20 × 28.14 | 39.07 | yes |
+| [Washer](../stl/pivot_washer.stl) | 13.02 × 9.28 × 4.90 | 0.29 | yes |
+| [Fit test (3 pieces, as laid out)](../stl/pivot_fit_test.stl) | 82.93 × 71.75 × 28.14 | 39.33 | yes |
+
+### Envelope
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `width` | 55 | written | block width / camera face width |
+| `height` | 110 | written |  |
+
+### Ring mounting holes
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `ring_hole_d` | 2.25 | written | pilot for the Ring bracket screws |
+| `ring_hole_spacing` | 91.5 | written | centre to centre, vertically centred |
+| `ring_hole_depth` | 12 | chosen | measured into the camera face |
+
+### Wiring pocket
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `pocket_z_min` | 30 | written | bottom of pocket above block bottom |
+| `pocket_z_max` | 60 | written | top of pocket above block bottom |
+| `pocket_deep_inset` | 9 | scaled | pocket edge to deep side, front view |
+| `pocket_width` | 34.3 | scaled | front-view width |
+| `pocket_depth` | 15 | fixed | behind the camera plate |
+
+### Cable hole
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `cable_d` | 8 | written |  |
+| `cable_z` | 35 | scaled | centre height |
+| `cable_deep_inset` | 17 | scaled | centre to deep side (where the wire leaves the wall) |
+
+### Mounting screws
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `screw_d` | 4.6 | fixed | clearance for #8 (4.17 mm shank) so it pulls the mount tight |
+| `screw_head_d` | 8.8 | fixed | countersink diameter for the #8 head (8.43 mm max) |
+| `screw_sink_angle` | 82 | fixed | US flat-head angle (metric is 90) |
+
+### Print tolerances
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `gap` | 0.4 | tolerance | sliding gap: skirt over base, bottom plate under base |
+| `roof_clr` | 0.8 | tolerance | shell top to roof underside (0.4 left once the screws pull the plate up) |
+| `tooth_clr` | 0.25 | tolerance | washer teeth clearance (tips and roots) |
+| `track_clr` | 0.5 | tolerance | washer to track walls, each side |
+| `thread_clr` | 0.3 | tolerance | added to the M5 thread diameters in the base |
+| `screw_clr_d` | 5.5 | tolerance | M5 clearance hole / slot width in the shell and washer |
+| `swing_clr` | 1.0 | tolerance | camera plate and Ring bosses to base, through the swing |
+| `foot_chamfer` | 0.5 | tolerance | first-layer edge chamfer (elephant's foot) |
+
+### Angle range
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `angle_min` | 3 | chosen |  |
+| `angle_max` | 15 | chosen |  |
+| `angle_step` | 3 | chosen | one tooth |
+| `install_angle` | 9 | chosen | angle the shell slides up at (boss channel) |
+
+### Shell
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `wall` | 4 | chosen | skirt thickness |
+| `plate_t` | 6 | chosen | bottom plate thickness |
+| `face_t` | 5 | chosen | camera plate thickness |
+| `face_back` | 10 | chosen | hinge axis to back of camera plate |
+| `face_chamfer` | 1.5 | chosen | matches the solid block |
+| `skirt_end` | -15 | chosen | trailing edge angle of the skirt, shell frame (4.6 mm off the wall at 15) |
+| `boss_d` | 8 | chosen | bosses behind the Ring holes |
+| `drain_d` | 3.5 | chosen | drain hole in the bottom plate |
+
+### Base and roof
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `roof_t` | 4 | chosen |  |
+| `hinge_x` | 6.5 | chosen | pivot axis distance from the mounting surface |
+| `hinge_y` | 30 | chosen | pivot axis distance from the back face |
+| `screw_y` | 19.5 | scaled | distance from back face (position not fixed; size is shared) |
+| `screw_z` | [25, 88] | chosen | heights; 25 (not 22) keeps 4 mm of plastic above the lock thread |
+| `screw_seat_x` | 49 | chosen | screw head seat; screw length = this + embedment (~75 mm, 3 in) |
+| `screw_cbore_d` | 9.4 | chosen | counterbore so heads sit under the skirt |
+
+### Lock
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `lock_r` | 35 | chosen | lock screw distance from the pivot axis |
+| `lock_a` | -10 | chosen | lock screw direction from the pivot, base frame |
+| `tooth_h` | 0.9 | chosen | 3 deg pitch is 1.83 mm at lock_r |
+| `track_d` | 2 | chosen | washer track recessed into the plate underside |
+| `washer_half` | 6 | chosen | washer half-width, degrees (4 teeth) |
+| `washer_band` | 6 | chosen | washer half-width, radial |
+| `washer_t` | 4 | chosen | washer body thickness below the teeth |
+
+### Threads
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `thread_p` | 0.8 | chosen | M5 coarse pitch |
+| `pivot_thread_l` | 15 | chosen | thread depth into the base (M5 x 20 screw engages ~13.6) |
+| `lock_thread_l` | 12 | chosen | thread depth into the base (M5 x 20 screw engages ~10.4) |
+| `pivot_head_d` | 8.5 | chosen | M5 socket-head cap screw (ISO 4762) |
+| `lock_head_d` | 16 | chosen | M5 knurled thumb screw head, typical (check the one you buy) |
+
+### Scale
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `label_angles` | [3, 9, 15] | chosen | numbered ticks |
+| `text_size` | 3.2 | chosen | label height |
+| `engrave` | 0.6 | chosen | engraving depth |

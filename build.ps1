@@ -87,6 +87,39 @@ $out = & $openscad --backend=manifold --export-format=binstl -D 'part=\"clash\"'
 if ($out -match 'top level object is empty') { throw 'Slide lock accepted a wrong hole' }
 Write-Host 'slide wrong-hole test: blocked'
 
+# ---- Pivot mount (option 4): printable parts ----
+$piv = 'ring_mount_pivot.scad'
+foreach ($p in 'base', 'shell', 'washer', 'fit_test') {
+    Export $piv "stl/pivot_$p.stl" @{ part = "\`"$p\`"" }
+    Check "stl/pivot_$p.stl"
+}
+Preview stl/pivot_fit_test.stl pivot-fit-test @('3d')
+foreach ($a in 3, 15) {
+    Export $piv "stl/pivot_assembly_$a.stl" @{ part = '\"assembly\"'; assembly_angle = $a }
+    Preview "stl/pivot_assembly_$a.stl" "pivot-$a" @('3d', 'top', 'under')
+}
+
+# Pivot clash check at every tooth (wall and mounting surface count as solids),
+# then a half-tooth angle that must collide, proving the check can fail.
+foreach ($a in 3, 6, 9, 12, 15) {
+    $out = & $openscad --backend=manifold --export-format=binstl -D 'part=\"clash\"' `
+        -D "assembly_angle=$a" -o $tmp $piv 2>&1 | Out-String
+    if ($out -notmatch 'top level object is empty') { throw "Pivot parts collide at $a degrees" }
+    Write-Host "pivot clash check $a deg: clear"
+}
+$out = & $openscad --backend=manifold --export-format=binstl -D 'part=\"clash\"' `
+    -D 'assembly_angle=4.5' -o $tmp $piv 2>&1 | Out-String
+if ($out -match 'top level object is empty') { throw 'Pivot lock accepted a half-tooth angle' }
+Write-Host 'pivot half-tooth test: blocked'
+
+# The shell must slide up onto the base at the install angle, from any height
+foreach ($d in 2, 10, 30, 60, 95) {
+    $out = & $openscad --backend=manifold --export-format=binstl -D 'part=\"install\"' `
+        -D "install_drop=$d" -o $tmp $piv 2>&1 | Out-String
+    if ($out -notmatch 'top level object is empty') { throw "Pivot shell jams $d mm below its seat" }
+    Write-Host "pivot install check $d mm: clear"
+}
+
 # Measurements table, generated from the .scad parameters and the STLs above
 python tools/param_table.py
 if ($LASTEXITCODE) { throw 'Measurements table failed' }

@@ -1,0 +1,50 @@
+{
+  "voice": "Microsoft Zira Desktop",
+  "scenes": [
+    {
+      "scene": 1,
+      "file": "scene-1.wav",
+      "seconds": 6.75
+    },
+    {
+      "scene": 2,
+      "file": "scene-2.wav",
+      "seconds": 13.29
+    },
+    {
+      "scene": 3,
+      "file": "scene-3.wav",
+      "seconds": 13.51
+    },
+    {
+      "scene": 4,
+      "file": "scene-4.wav",
+      "seconds": 18.75
+    },
+    {
+      "scene": 5,
+      "file": "scene-5.wav",
+      "seconds": 16.85
+    },
+    {
+      "scene": 6,
+      "file": "scene-6.wav",
+      "seconds": 22.7
+    },
+    {
+      "scene": 7,
+      "file": "scene-7.wav",
+      "seconds": 10.04
+    },
+    {
+      "scene": 8,
+      "file": "scene-8.wav",
+      "seconds": 7.85
+    },
+    {
+      "scene": 9,
+      "file": "scene-9.wav",
+      "seconds": 7.51
+    }
+  ]
+}

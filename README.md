@@ -4,7 +4,7 @@ An angled mounting block for a Ring camera. It screws on through its side and
 turns the camera 8° away from the mounting surface. A pocket behind the camera
 holds the wiring, and an 8 mm hole carries the cable in from the back.
 
-Two print options:
+Four print options:
 
 1. **Solid block** (primary): one piece, fixed 8°. This section.
 2. **[Adjustable mount](#adjustable-mount-option-2)** (secondary): a camera
@@ -12,16 +12,36 @@ Two print options:
 3. **[Slide mount](#slide-mount-option-3)** (secondary): adjustable 3°–15°
    with **no metal hardware** apart from the two screws into the wall. The
    shell slides on curved dovetail rails and locks with a printed pin.
+4. **[Pivot mount](#pivot-mount-option-4)** (secondary): the base screws on
+   first and has a roof. The shell slides up under it, pivots on an M5 thumb
+   screw, and locks with a toothed washer and thumb screw: 3° to 15° in 3°
+   clicks.
 
 **[View the model in 3D →](stl/ring_mount.stl)** (GitHub shows STL files in an interactive viewer)
 
-**Animated demo:** [`demo.html`](demo.html) plays a 90-second walkthrough
-(the sketch, both options, the parts, installing each) from the real STLs.
-To watch it locally, serve the repo folder (`python -m http.server 8765
---bind 127.0.0.1`) and open `http://localhost:8765/demo.html`. It is also
-published as a private Claude artifact. Before republishing, regenerate its
-model pack with `python tools/pack_demo.py <out.js>`, because the artifact
-host doesn't serve `.stl` files.
+**Video:** [`docs/video/ring-mount-options.mp4`](docs/video/ring-mount-options.mp4)
+is a 3-minute narrated walkthrough of all four options. The storyboard and
+script are in [`docs/video/storyboard.md`](docs/video/storyboard.md).
+
+**Animated demo:** [`demo.html`](demo.html) plays the same walkthrough
+interactively from the real STLs, with chapters. To watch it locally, serve
+the repo folder (`python -m http.server 8765 --bind 127.0.0.1`) and open
+`http://localhost:8765/demo.html`. It is also published as a private Claude
+artifact. Before republishing, regenerate its model pack with
+`python tools/pack_demo.py <out.js>`, because the artifact host doesn't
+serve `.stl` files.
+
+**Remaking the video** (after a design change; no installs):
+
+1. `python tools/make_narration.py` speaks the storyboard's narration with
+   Windows' built-in voice into `docs/video/narration/`. Pass a voice name
+   to change it; Zira is the default.
+2. `python tools/video_server.py`, then open
+   `http://localhost:8765/demo.html?record` in Edge or Chrome. The page
+   renders every frame, encodes the MP4 in the browser and saves it to
+   `docs/video/` (about 4 minutes). If a narration line is longer than its
+   scene, it stops and says which scene. Lengthen that scene in `demo.html`
+   (`S`) and in the storyboard.
 
 | 3D | Camera face | Countersink side | Top |
 |---|---|---|---|
@@ -178,6 +198,81 @@ positions aren't fixed; only their size is. The shell is up to 69 mm wide at
 its hole, and a wrong-hole test (shell at 5°, pin in the "3" hole) that must
 be blocked. That second test proves the check can fail.
 
+## Pivot mount (option 4)
+
+| 3° | 15° | Underside: slot, washer, screws | Fit test |
+|---|---|---|---|
+| ![3 degrees](docs/pivot-3-top.png) | ![15 degrees](docs/pivot-15-top.png) | ![Underside](docs/pivot-3-under.png) | ![Fit test](docs/pivot-fit-test-3d.png) |
+
+3D: [at 3°](stl/pivot_assembly_3.stl) · [at 15°](stl/pivot_assembly_15.stl)
+(viewing only; print the parts below).
+
+**How it works.** The **base** screws to the surface first, with nothing in
+the way. Its top is a **roof** that overhangs the shell at every angle, so
+rain can't get in from above. The **shell** carries the Ring. It slides up
+from below at 9° (the Ring bosses pass up a channel in the base) until it
+sits under the roof. An M5 socket-head screw from below, the **pivot
+screw**, goes through the shell's bottom plate into a thread in the base on
+the hinge axis. It's not a thumb screw because the axis is only 6.5 mm from
+the mounting surface, too close for a thumb-screw head. Adjusting never
+touches it.
+A second M5 thumb screw, the **lock screw**, goes up through a printed
+**toothed washer** and a curved slot in the bottom plate into another thread
+in the base. Tightening it pulls the washer's teeth into teeth on the plate's
+underside: one tooth = 3°. The screw holds the angle in shear, so the teeth
+take the load, not clamp friction. The threads are modelled in the print.
+
+**Adjusting:** loosen the lock screw about 2 turns. The washer drops off the
+teeth but stays in its track, so it can't spin or fall off. Turn the shell,
+then tighten. The shell doesn't drop, and the pivot screw stays snug.
+**Reading the angle:** the skirt's trailing edge points at a scale engraved
+on the base (3, 9, 15, with ticks every 3°).
+
+| STL | Print orientation (as exported) |
+|---|---|
+| `stl/pivot_fit_test.stl` | **Print this first.** The bottom 16 mm of the base (both threads), the bottom of the shell (plate, teeth, slot) and a washer. Check that the thumb screws thread in, that the washer seats at each click, and that the skirt slides. |
+| `stl/pivot_base.stl` | Roof down, so the roof is the flat first layer and the threads print vertical. |
+| `stl/pivot_shell.stl` | Camera face down. |
+| `stl/pivot_washer.stl` | Flat face down, teeth up. |
+
+**Hardware (stainless, A2 or A4):**
+
+- 1× M5 × 20 socket-head cap screw (ISO 4762, 8.5 mm head): pivot
+- 1× M5 × 20 knurled thumb screw: lock. The model allows a head up to
+  16 mm (`lock_head_d`); check the one you buy.
+- 2× #8 flat (bevel) head wood screws, about 75 mm (3 in) long. The head
+  seats 49 mm into the base (`screw_seat_x`), in an 82° countersink.
+
+Lengths are calculated from the model, not tested. Thread engagement: about
+13.6 mm (pivot) and 10.4 mm (lock) when locked. With the lock loosened it
+still has about 8.8 mm.
+
+**Assembly** `[unverified: not yet test-assembled]`:
+
+1. Feed the cable through the back. Screw the base to the surface through
+   the two counterbores on its curved side.
+2. Turn the shell to 9° and slide it up onto the base from below, until it
+   stops under the roof.
+3. Fit the pivot screw up through the hole at the shell's deep corner and
+   tighten it snug with a 4 mm hex key.
+4. Turn the shell to the angle you want. Put the washer in its track, teeth
+   up, and fit the lock screw through it and the slot. Tighten.
+5. Wire the Ring through the window in the shell's camera plate, then screw
+   it to the shell.
+
+**Chosen for this design:** the mounting screws sit at 25 and 88 mm (options
+1 and 2: 22 and 88). The lower screw moved up 3 mm to leave 4 mm of plastic
+above the lock thread. Screw positions aren't fixed; only their size is.
+
+**Checks in `build.ps1`:**
+
+- No collisions at all five angles. The wall, the mounting surface and the
+  screw heads count as solids.
+- A half-tooth angle (4.5°) that must collide. This proves the check can
+  fail.
+- The shell slides up onto the base at the install angle, checked from
+  2 mm to 95 mm below its seat.
+
 ## Changing the design
 
 The `.scad` files are the single source of truth. The STLs and preview
@@ -189,6 +284,7 @@ images are generated from them. Never edit those by hand.
 | `ring_mount.scad` | Solid block |
 | `ring_mount_adjustable.scad` | Adjustable mount (`part` selects base / shell / washer / fit_test / assembly) |
 | `ring_mount_slide.scad` | Slide mount (`part` selects base / shell / pin / fit_test / assembly) |
+| `ring_mount_pivot.scad` | Pivot mount (`part` selects base / shell / washer / fit_test / assembly) |
 
 1. Edit a value at the top of the right file. To see it live, open the file
    in OpenSCAD (Start menu → OpenSCAD (Nightly)) and press F5.
@@ -306,6 +402,30 @@ edit the `.scad` file and rebuild; don't edit the table.
       water that gets in. At steep angles there is a gap of up to about 4 mm
       between the shell's deep edge and the mounting surface. Check on site
       whether rain gets in there.
+- [ ] **Pivot: fit test.** Print `pivot_fit_test.stl` and check:
+      - The M5 thumb screws thread in by hand (`thread_clr`). The 0.8 mm
+        pitch is near the limit of a 0.4 mm nozzle. If the threads don't
+        work, run an M5 tap through, or let the stainless screw cut its own
+        thread.
+      - The washer seats at each click (`tooth_clr`).
+      - The skirt slides (`gap`).
+
+      Record the final values here.
+- [ ] **Pivot: tooth size.** The teeth are 0.9 mm tall at a 1.83 mm pitch
+      (at 35 mm from the pivot), and 4 teeth engage. A rough estimate
+      gives a large margin, but it's untested. If the fit test shows
+      weakness: a wider washer (`washer_half`) or taller teeth (`tooth_h`).
+      *Gate: fit test.*
+- [ ] **Pivot: thin edge by the track.** The washer track comes within
+      about 1.7 mm of the bottom plate's edge (calculated). It's only a
+      2 mm-deep recess, but check that edge on the print. *Gate: fit test.*
+- [ ] **Pivot: roof edge.** At 15° a sliver (about 1.3 mm) of the camera
+      plate's top edge at the deep corner sticks out past the roof. The roof
+      can't cover it there without sticking out in front of the face at 3°.
+      Minor, since the Ring covers the face. Check on site.
+- [ ] **Pivot: water.** The roof covers the top. The teeth and slot face
+      down, so water drains off. There's a drain in the bottom plate. Check
+      on site for rain driven in at the deep edge.
 - [ ] **OpenSCAD PNG export fails** (`Unable to create FBO`). Cause not
       traced. Hypothesis: OpenGL offscreen rendering under x64 emulation on
       ARM64. Workaround in place (`tools/render_stl.py`). The workaround can
@@ -318,11 +438,15 @@ mount_common.scad             fixed measurements shared by all options
 ring_mount.scad               solid block (edit this)
 ring_mount_adjustable.scad    adjustable mount (edit this)
 ring_mount_slide.scad         slide mount, option 3 (edit this)
+ring_mount_pivot.scad         pivot mount, option 4 (edit this)
 build.ps1                     rebuild all STLs + previews + checks
 stl/ring_mount.stl            generated: solid block
 stl/adjustable_*.stl          generated: base, shell, washer, fit test, assemblies
+stl/slide_*.stl               generated: option 3 parts and assemblies
+stl/pivot_*.stl               generated: option 4 parts and assemblies
 docs/preview-*.png            generated: solid block views
 docs/adjustable-*.png         generated: adjustable mount views
+docs/slide-*.png, pivot-*.png generated: option 3 and 4 views
 docs/sketch.webp       original hand sketch
 tools/check_stl.py     STL size / volume / watertight check
 tools/render_stl.py    STL → PNG preview renderer

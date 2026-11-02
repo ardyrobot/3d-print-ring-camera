@@ -56,11 +56,6 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4.4vw
 .caption .kicker { font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--accent); }
 .caption h2 { font-family: var(--display); font-weight: 600; font-size: clamp(16px, 2.3vw, 24px); line-height: 1.15; margin: 0; text-wrap: balance; }
 .caption p { margin: 0; font-size: clamp(12px, 1.35vw, 14px); color: var(--muted); }
-.steps { list-style: none; margin: 6px 0 0; padding: 0; display: grid; gap: 3px; font-size: clamp(12px, 1.3vw, 14px); }
-.steps li { display: grid; grid-template-columns: 1.6em 1fr; color: var(--muted); transition: color 0.3s; }
-.steps li span { font-family: var(--mono); }
-.steps li.on { color: var(--ink); font-weight: 500; }
-.steps li.on span { color: var(--accent); }
 .note { font-family: var(--mono); font-size: 10.5px; color: var(--muted); margin-top: 4px; }
 
 .readout {
@@ -76,7 +71,7 @@ h1 { font-family: var(--display); font-weight: 700; font-size: clamp(28px, 4.4vw
 
 .title-card {
   position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 10px;
-  padding: 24px; transition: opacity 0.6s ease;
+  padding: 24px; transition: opacity 0.6s ease; pointer-events: none;
 }
 .title-card h2 { font-family: var(--display); font-weight: 700; font-size: clamp(26px, 5vw, 56px); margin: 0; line-height: 1.02; text-wrap: balance; }
 .title-card p { margin: 0; color: var(--muted); font-size: clamp(13px, 1.6vw, 17px); }
@@ -107,25 +102,31 @@ code { font-family: var(--mono); font-size: 0.92em; }
 
 @media (max-width: 640px) {
   .caption { max-width: 92%; left: 4%; right: 4%; bottom: 4%; padding: 8px 10px 10px; }
-  .caption p, .steps { display: none; }
+  .caption p { display: none; }
   .readout .ticks, .readout .lbl { display: none; }
 }
 </style>
 
 <div class="wrap">
   <header>
-    <div class="eyebrow">Open-source 3D print · two options</div>
+    <div class="eyebrow">Open-source 3D print · four options</div>
     <h1>Angled Camera Mount</h1>
-    <p class="lede">From one pencil sketch to two printable mounts for a doorbell camera:
-      a solid 8° block, and an adjustable version that clicks from 3° to 15°.</p>
+    <p class="lede">From one pencil sketch to four printable mounts for a doorbell camera:
+      a solid 8° block, a hinge, an all-printed dovetail slide, and a pivot with a roof.
+      The three adjustable ones set 3° to 15°.</p>
   </header>
 
-  <div class="stage" id="stage" aria-label="Animated demonstration of both mounts">
+  <div class="stage" id="stage" aria-label="Animated demonstration of the four mounts">
     <canvas id="gl"></canvas>
     <div class="title-card" id="titleCard">
-      <span class="pill">90 second demo</span>
-      <h2>One drawing.<br>Two mounts.</h2>
+      <span class="pill">4 minute demo</span>
+      <h2>One drawing.<br>Four mounts.</h2>
       <p>Press Play, or pick a chapter below.</p>
+    </div>
+    <div class="title-card" id="endCard" style="opacity:0">
+      <span class="pill">Built from code · OpenSCAD + Python</span>
+      <h2>One drawing.<br>Four mounts.</h2>
+      <p>github.com/ardyrobot/3d-print-ring-camera</p>
     </div>
     <div class="readout" id="readout" style="opacity:0" aria-hidden="true">
       <div class="deg" id="deg">9°</div>
@@ -136,7 +137,6 @@ code { font-family: var(--mono); font-size: 0.92em; }
       <div class="kicker" id="capKicker"></div>
       <h2 id="capTitle"></h2>
       <p id="capBody"></p>
-      <ol class="steps" id="capSteps"></ol>
       <div class="note" id="capNote"></div>
     </div>
     <div class="loading" id="loading">Loading models…</div>
@@ -144,8 +144,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
 
   <div class="controls">
     <button class="btn" id="play" type="button">Play</button>
-    <input type="range" id="scrub" min="0" max="88" step="0.1" value="0" aria-label="Timeline">
-    <span class="time" id="time">0:00 / 1:28</span>
+    <input type="range" id="scrub" min="0" max="230" step="0.1" value="0" aria-label="Timeline">
+    <span class="time" id="time">0:00 / 3:50</span>
   </div>
   <div class="chips" id="chips"></div>
 
@@ -153,8 +153,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
     <section>
       <h3>Where it came from</h3>
       <p>A hand-drawn sketch: a 55 × 110 mm block, two mounting holes 91.5 mm apart,
-        a wiring pocket and an angle marked "?". Every dimension in the model is tagged
-        as written on the sketch, measured off it, or a design choice.</p>
+        a wiring pocket and an angle marked "?". Every option shares those fixed
+        measurements from one file, <code>mount_common.scad</code>.</p>
     </section>
     <section>
       <h3>What you are seeing</h3>
@@ -173,54 +173,67 @@ code { font-family: var(--mono); font-size: 0.92em; }
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 (() => {
-  // ---------- geometry constants (from ring_mount_adjustable.scad) ----------
+  // ---------- geometry constants (from the .scad files) ----------
   const D2R = Math.PI / 180;
-  const HX = 6.5, HY = 30;                 // hinge axis
-  const FACE_FRONT = 15;                   // hinge axis to camera face (shell frame)
-  const CLAMP_Z = 70, CLAMP_A = -10;       // clamp bolt height and direction
-  const WASHER_FACE = 53.7666;             // R_out + washer_t
+  const HX = 6.5, HY = 30;                 // options 2 and 4: hinge axis
+  const FACE_FRONT = 15;                   // options 2 and 4: hinge axis to camera face (shell frame)
+  const CLAMP_Z = 70, CLAMP_A = -10;       // option 2 clamp bolt height and direction
+  const WASHER_FACE = 53.7666;             // option 2: R_out + washer_t
   const SOLID_FACE_ANGLE = 8;
-  const ANGLES = [3, 5, 7, 9, 11, 13, 15];
+  const SP = [26, -20], SLIDE_FACE = 62.4; // option 3: virtual pivot, face distance (shell frame)
+  // option 3 lock holes: [angle, radius, shell angle] (pin_rows in ring_mount_slide.scad)
+  const PIN_HOLES = [[3, 44, 20], [7, 44, 6], [11, 44, -8], [15, 44, -22], [5, 34, 13], [9, 34, -1], [13, 34, -15]];
+  const LOCK = [40.968, 23.922, -3.15];    // option 4: lock screw axis and washer bottom (washer_print offset)
+  const A2 = [3, 5, 7, 9, 11, 13, 15], A4 = [3, 6, 9, 12, 15];
+
+  // Colour code, the same in every option (docs/video/storyboard.md)
+  const C = { base: 0x1f4fbf, shell: 0xf2603c, lock: 0x00b39b };
+  const ACC = { n: '#1f6f78', 1: '#e09a2d', 2: '#3b7dd8', 3: '#3aa76d', 4: '#8a5cd1' };
 
   const $ = (id) => document.getElementById(id);
   const ease = (x) => x < 0 ? 0 : x > 1 ? 1 : x * x * (3 - 2 * x);
   const seg = (u, a, b) => ease((u - a) / (b - a));       // eased 0..1 over [a,b]
   const lerp = (a, b, t) => a + (b - a) * t;
+  const bump = (u, c, w) => Math.max(0, 1 - Math.abs(u - c) / w);   // 0..1..0 spike at c
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const RECORD = new URLSearchParams(location.search).has('record');
 
   // ---------- renderer ----------
   const canvas = $('gl');
   let renderer;
   try {
-    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true });
+    renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, preserveDrawingBuffer: RECORD });
   } catch (e) {
     $('loading').textContent = 'This demo needs WebGL. The STL files are on GitHub.';
     return;
   }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
+  renderer.setPixelRatio(RECORD ? 1 : Math.min(window.devicePixelRatio || 1, 2));
   renderer.shadowMap.enabled = true;
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
   renderer.localClippingEnabled = true;
   renderer.outputEncoding = THREE.sRGBEncoding;
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;   // keeps the light filament from blowing out
-  renderer.toneMappingExposure = 0.9;
+  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  renderer.toneMappingExposure = 0.82;
 
   const scene = new THREE.Scene();
   const cam = new THREE.PerspectiveCamera(30, 16 / 9, 1, 5000);
 
-  scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa1a7, 0.75));
-  const sun = new THREE.DirectionalLight(0xffffff, 0.85);
+  scene.add(new THREE.HemisphereLight(0xffffff, 0x9aa1a7, 0.5));
+  const sun = new THREE.DirectionalLight(0xffffff, 0.9);
   sun.position.set(180, 320, 260);
   sun.castShadow = true;
   sun.shadow.mapSize.set(2048, 2048);
-  Object.assign(sun.shadow.camera, { left: -260, right: 260, top: 260, bottom: -260, near: 10, far: 1200 });
+  Object.assign(sun.shadow.camera, { left: -360, right: 360, top: 360, bottom: -360, near: 10, far: 1400 });
   sun.shadow.bias = -0.0004;
   scene.add(sun);
   const fill = new THREE.DirectionalLight(0xdfe8ee, 0.35);
   fill.position.set(-200, 120, -80);
   scene.add(fill);
+  const rim = new THREE.DirectionalLight(0xffffff, 0.45);   // back light: catches the edges
+  rim.position.set(-120, 200, -320);
+  scene.add(rim);
 
-  const ground = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.ShadowMaterial({ opacity: 0.16 }));
+  const ground = new THREE.Mesh(new THREE.PlaneGeometry(3000, 3000), new THREE.ShadowMaterial({ opacity: 0.18 }));
   ground.rotation.x = -Math.PI / 2;
   ground.receiveShadow = true;
   scene.add(ground);
@@ -232,20 +245,22 @@ code { font-family: var(--mono); font-size: 0.92em; }
   const M = (x, y, z) => new THREE.Vector3(x, z, -y);   // model coords -> three coords
 
   // ---------- materials ----------
-  const mat = (color, rough = 0.62, extra = {}) =>
+  const mat = (color, rough = 0.55, extra = {}) =>
     new THREE.MeshStandardMaterial({ color, roughness: rough, metalness: 0, ...extra });
   const MAT = {
-    bone: mat(0xcfc6b4),            // light filament: runs cooler in sun
-    graphite: mat(0x4b5258),
-    teal: mat(0x1f6f78, 0.5),
-    steel: mat(0xaab1b7, 0.35, { metalness: 0.7 }),
+    base: mat(C.base, 0.5),
+    shell: mat(C.shell, 0.5),
+    lock: mat(C.lock, 0.42),
+    steel: mat(0xc3c9ce, 0.28, { metalness: 0.85 }),
     wall: mat(0xe3e5e6, 0.95),
     trim: mat(0xd2cdc4, 0.9),
     cable: mat(0x2a2e31, 0.6),
     device: mat(0x24282b, 0.45),
     lens: mat(0x0d0f10, 0.2),
+    cone: new THREE.MeshBasicMaterial({ color: 0x1f6f78, transparent: true, opacity: 0.14, depthWrite: false, side: THREE.DoubleSide }),
   };
-  const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1000);
+  const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1000);   // X-ray: keeps model z <= constant
+  const cutPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1e4);     // cutaway: keeps model y <= constant
 
   // ---------- STL loading ----------
   // Published copies can't serve .stl, so they ship demo_models.js (made by
@@ -285,18 +300,22 @@ code { font-family: var(--mono); font-size: 0.92em; }
     return g;
   }
 
-  function part(geom, material, clip = false) {
+  // Printed part: mesh + edge lines. Every part can glow (emissive), which the
+  // timeline uses to point at the part being described.
+  const GLOW = [];
+  function part(geom, material, planes = null) {
     const g = new THREE.Group();
     const m = material.clone();
-    if (clip) m.clippingPlanes = [clipPlane];
+    if (planes) { m.clippingPlanes = planes; m.side = THREE.DoubleSide; }
     const mesh = new THREE.Mesh(geom, m);
     mesh.castShadow = true; mesh.receiveShadow = true;
     const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geom, 28),
-      new THREE.LineBasicMaterial({ color: 0x1f2428, transparent: true, opacity: 0.45,
-        clippingPlanes: clip ? [clipPlane] : null }));
+      new THREE.LineBasicMaterial({ color: 0x1f2428, transparent: true, opacity: 0.35, clippingPlanes: planes }));
     g.add(mesh, edges);
+    g.mesh = mesh; GLOW.push(mesh);
     return g;
   }
+  function glow(p, hex, k) { if (k > 0) p.mesh.material.emissive.set(hex).multiplyScalar(0.55 * k); }
 
   function cyl(r, h, material, segs = 24) {   // along model +Z from 0 to h
     const geo = new THREE.CylinderGeometry(r, r, h, segs);
@@ -309,6 +328,13 @@ code { font-family: var(--mono); font-size: 0.92em; }
     const shank = cyl(2, len, MAT.steel); shank.position.z = -len;
     const head = cyl(headR, headH, MAT.steel, 6);
     g.add(shank, head);
+    return g;
+  }
+
+  function upScrew(len, headD, headH, segs) {           // head below z=0, shank up +z
+    const g = new THREE.Group();
+    const head = cyl(headD / 2, headH, MAT.steel, segs); head.position.z = -headH;
+    g.add(head, cyl(2.5, len, MAT.steel));
     return g;
   }
 
@@ -328,21 +354,64 @@ code { font-family: var(--mono); font-size: 0.92em; }
     body.castShadow = true;
     const lens = cyl(7, 1.5, MAT.lens, 32); lens.rotation.x = -Math.PI / 2; lens.position.set(0, 11, 30);
     const ring = cyl(9, 1, MAT.steel, 32); ring.rotation.x = -Math.PI / 2; ring.position.set(0, 10.6, -28);
-    g.add(body, lens, ring);
+    const coneGeo = new THREE.ConeGeometry(70, 160, 32, 1, true);
+    coneGeo.translate(0, -80, 0); coneGeo.rotateX(Math.PI);           // apex at the lens, opening along +y
+    g.cone = new THREE.Mesh(coneGeo, MAT.cone.clone()); g.cone.position.set(0, 12, 30); g.cone.visible = false;
+    g.add(body, lens, ring, g.cone);
     return g;
   }
+
+  // Text in the 3D scene. Labels draw on top of everything (no depth test).
+  function label(title, detail = '', color = '#1f2428', h = 10) {
+    const c = document.createElement('canvas'); c.width = 768; c.height = detail ? 200 : 128;
+    const x = c.getContext('2d');
+    x.textAlign = 'center'; x.textBaseline = 'middle';
+    if (detail) {
+      x.fillStyle = 'rgba(255,255,255,0.86)';
+      x.beginPath(); x.roundRect ? x.roundRect(24, 12, 720, 176, 28) : x.rect(24, 12, 720, 176); x.fill();
+    }
+    x.font = '700 70px "Familjen Grotesk", Arial, sans-serif'; x.fillStyle = color;
+    x.fillText(title, 384, detail ? 72 : 66);
+    if (detail) { x.font = '500 48px "IBM Plex Sans", "Segoe UI", sans-serif'; x.fillStyle = '#5a656d'; x.fillText(detail, 384, 144); }
+    const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding;
+    const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
+    s.renderOrder = 10;
+    s.scale.set(h * 768 / c.height, h, 1);
+    return s;
+  }
+  function dim(a, b, text, at) {                          // dimension line a-b with a label at `at`
+    const g = new THREE.Group();
+    const lm = new THREE.LineBasicMaterial({ color: 0x1f6f78 });
+    g.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(...a), new THREE.Vector3(...b)]), lm));
+    for (const p of [a, b]) { const d = new THREE.Mesh(new THREE.SphereGeometry(1.2, 10, 8), new THREE.MeshBasicMaterial({ color: 0x1f6f78 })); d.position.set(...p); g.add(d); }
+    const l = label(text, '', '#1f6f78', 9); l.position.set(...at); g.add(l);
+    return g;
+  }
+
+  // Parts that move in exploded views remember where they belong
+  const HOMES = [], LABELS = [];
+  const home = (o) => { o.userData.home = o.position.clone(); HOMES.push(o); return o; };
+  function tag(parent, title, detail, at, color) {
+    const l = label(title, detail, color, 14); l.position.set(...at); parent.add(l); LABELS.push(l); return l;
+  }
+  const off = (o, e, x, y, z) => o.position.set(o.userData.home.x + x * e, o.userData.home.y + y * e, o.userData.home.z + z * e);
 
   // ---------- scene objects (filled after loading) ----------
   const O = {};
   async function build() {
+    await document.fonts.ready;
     // Sequential so the packed-file fallback loads once
-    const gSolid = await loadSTL('stl/ring_mount.stl');
-    const gBase = await loadSTL('stl/adjustable_base.stl');
-    const gShell = await loadSTL('stl/adjustable_shell.stl');
-    const gWasher = await loadSTL('stl/adjustable_washer.stl');
+    const G = {};
+    for (const n of ['ring_mount', 'adjustable_base', 'adjustable_shell', 'adjustable_washer',
+                     'slide_base', 'slide_shell', 'pivot_base', 'pivot_shell', 'pivot_washer'])
+      G[n] = await loadSTL(`stl/${n}.stl`);
     // Undo the print orientations baked into the exported STLs (see the .scad "part" branches)
-    gShell.translate(0, 0, -FACE_FRONT); gShell.rotateX(Math.PI / 2);          // -> shell frame
-    gWasher.translate(CLAMP_Z, 0, -WASHER_FACE); gWasher.rotateY(-Math.PI / 2); // -> bolt frame
+    G.adjustable_shell.translate(0, 0, -FACE_FRONT); G.adjustable_shell.rotateX(Math.PI / 2);       // -> shell frame
+    G.adjustable_washer.translate(CLAMP_Z, 0, -WASHER_FACE); G.adjustable_washer.rotateY(-Math.PI / 2); // -> bolt frame
+    G.slide_shell.translate(0, 0, -SLIDE_FACE); G.slide_shell.rotateX(Math.PI / 2);                // -> shell frame
+    G.pivot_base.rotateX(Math.PI); G.pivot_base.translate(0, 0, 110);                              // roof-down -> upright
+    G.pivot_shell.translate(0, 0, -FACE_FRONT); G.pivot_shell.rotateX(Math.PI / 2);                // -> shell frame
+    G.pivot_washer.translate(...LOCK);                                                             // -> world
 
     // Sketch on the desk, rotated so it reads from the front
     const tex = new THREE.TextureLoader().load('docs/sketch.webp');
@@ -355,9 +424,10 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.paper.receiveShadow = true;
     world.add(O.paper);
 
-    // Option 1
+    // Option 1: one printed part (camera-holding, so shell colour)
     O.solid = new THREE.Group();
-    O.solid.add(part(gSolid, MAT.bone, true));
+    O.solidBlock = part(G.ring_mount, MAT.shell, [clipPlane]);
+    O.solid.add(O.solidBlock);
     O.solidDevice = device();
     {
       const a = SOLID_FACE_ANGLE * D2R, cx = 27.5;
@@ -367,30 +437,84 @@ code { font-family: var(--mono); font-size: 0.92em; }
         cx + Math.sin(a) * (11.2 + d), cy + Math.cos(a) * (11.2 + d), 55);
       O.solidDevice.place(0);
       O.solidDevice.rotation.z = -a;
+      const fy = cy + 1.5;                              // just in front of the face, for the dimensions
+      O.dims = new THREE.Group();
+      O.dims.add(dim([0, 52, 122], [55, 44, 122], '55', [27.5, 50, 132]),
+                 dim([-12, 50, 0], [-12, 50, 110], '110', [-30, 50, 55]),
+                 dim([cx, fy, 9.25], [cx, fy, 100.75], '91.5', [cx + 20, fy + 2, 55]));
+      O.solid.add(O.dims);
     }
     O.solid.add(O.solidDevice);
-    O.solidScrews = [22, 88].map((z) => { const s = woodScrew(75); s.position.set(55, 19.5, z); O.solid.add(s); return s; });
+    O.solidScrews = [22, 88].map((z) => { const s = woodScrew(75); s.position.set(55, 19.5, z); home(s); O.solid.add(s); return s; });
+    tag(O.solidBlock, 'Block', '1 printed part', [27, 23, 118], ACC[1]);
+    tag(O.solidScrews[0], 'Wood screws × 2', '#8 flat head, 3 in', [24, 0, 16], ACC[1]);
     world.add(O.solid);
 
     // Option 2
     O.adj = new THREE.Group();
-    O.base = part(gBase, MAT.graphite);
+    O.base = part(G.adjustable_base, MAT.base);
     O.shellPivot = new THREE.Group(); O.shellPivot.position.set(HX, HY, 0);
-    O.shellSlide = new THREE.Group();
-    O.shellSlide.add(part(gShell, MAT.bone));
+    O.shellSlide = home(new THREE.Group());
+    O.adjShell = part(G.adjustable_shell, MAT.shell);
+    O.shellSlide.add(O.adjShell);
     O.adjDevice = device(); O.adjDevice.position.set((-6.5 + 48.5) / 2, FACE_FRONT + 11.2, 55);
     O.shellSlide.add(O.adjDevice);
     O.shellPivot.add(O.shellSlide);
     O.washerPivot = new THREE.Group(); O.washerPivot.position.set(HX, HY, 0); O.washerPivot.rotation.z = CLAMP_A * D2R;
-    O.washer = part(gWasher, MAT.teal);
+    O.washer = home(part(G.adjustable_washer, MAT.lock));
     O.clampBolt = bolt(20); O.clampBolt.rotation.y = Math.PI / 2; // head outward (+x), shank inward
-    O.clampBolt.position.set(WASHER_FACE, 0, CLAMP_Z);
+    O.clampBolt.position.set(WASHER_FACE, 0, CLAMP_Z); home(O.clampBolt);
     O.washerPivot.add(O.washer, O.clampBolt);
-    O.hingeTop = bolt(16); O.hingeTop.position.set(HX, HY, 110);
-    O.hingeBot = bolt(16); O.hingeBot.rotation.x = Math.PI; O.hingeBot.position.set(HX, HY, 0);
-    O.adjScrews = [22, 88].map((z) => { const s = woodScrew(65); s.position.set(40, 19.5, z); O.adj.add(s); return s; });
+    O.hingeTop = bolt(16); O.hingeTop.position.set(HX, HY, 110); home(O.hingeTop);
+    O.hingeBot = bolt(16); O.hingeBot.rotation.x = Math.PI; O.hingeBot.position.set(HX, HY, 0); home(O.hingeBot);
     O.adj.add(O.base, O.shellPivot, O.washerPivot, O.hingeTop, O.hingeBot);
+    tag(O.base, 'Base', 'printed · screws to the wall', [10, 5, 116], ACC[2]);
+    tag(O.adjShell, 'Shell', 'printed · holds the camera', [28, 20, 116], ACC[2]);
+    tag(O.washer, 'Toothed washer', 'printed · 2° teeth', [60, 0, 88], ACC[2]);
+    tag(O.hingeTop, 'M4 bolts × 3', 'stainless + 3 nuts', [0, 0, 14], ACC[2]);
     world.add(O.adj);
+
+    // Option 3
+    O.sld = new THREE.Group();
+    O.sldBase = part(G.slide_base, MAT.base);
+    O.sld.add(O.sldBase);
+    O.sldPivot = new THREE.Group(); O.sldPivot.position.set(SP[0], SP[1], 0);
+    O.sldShell = home(part(G.slide_shell, MAT.shell));
+    O.sldPivot.add(O.sldShell);
+    O.sldDevice = device(); O.sldDevice.position.set(0, SLIDE_FACE + 11.2, 55);
+    O.sldPivot.add(O.sldDevice);
+    O.pin = new THREE.Group();
+    O.pinBody = new THREE.Group();
+    { const pm = MAT.lock.clone(); const head = cyl(5, 3, pm, 24); head.position.z = -3; O.pinBody.add(head, cyl(2.1, 14, pm, 16)); O.pinMat = pm; }
+    O.pin.add(O.pinBody);
+    O.sld.add(O.sldPivot, O.pin);
+    tag(O.sldBase, 'Base', 'printed · curved dovetail rails', [10, 5, 116], ACC[3]);
+    tag(O.sldShell, 'Shell', 'printed · slides on the rails', [0, 70, 116], ACC[3]);
+    tag(O.pinBody, 'Lock pin', 'printed · one hole per angle', [0, 0, -16], ACC[3]);
+    world.add(O.sld);
+
+    // Option 4 (the cutaway plane applies to its printed parts)
+    O.piv = new THREE.Group();
+    O.pivBase = home(part(G.pivot_base, MAT.base, [cutPlane]));
+    O.pivPivot = new THREE.Group(); O.pivPivot.position.set(HX, HY, 0);
+    O.pivSlide = home(new THREE.Group());
+    O.pivShell = part(G.pivot_shell, MAT.shell, [cutPlane]);
+    O.pivSlide.add(O.pivShell);
+    O.pivDevice = device(); O.pivDevice.position.set((-6.5 + 48.5) / 2, FACE_FRONT + 11.2, 55);
+    O.pivSlide.add(O.pivDevice);
+    O.pivPivot.add(O.pivSlide);
+    O.pivWasher = home(part(G.pivot_washer, MAT.lock, [cutPlane]));
+    O.pivotScrew = upScrew(20, 8.5, 5, 6); O.pivotScrew.position.set(HX, HY, 0); home(O.pivotScrew);
+    O.lockScrew = upScrew(20, 16, 5, 32); O.lockScrew.position.set(LOCK[0], LOCK[1], LOCK[2]); home(O.lockScrew);
+    O.pivScrews = [25, 88].map((z) => { const s = woodScrew(75); s.position.set(49, 19.5, z); home(s); O.piv.add(s); return s; });
+    O.piv.add(O.pivBase, O.pivPivot, O.pivWasher, O.pivotScrew, O.lockScrew);
+    tag(O.pivBase, 'Base + roof', 'printed · M5 threads inside', [10, 5, 116], ACC[4]);
+    tag(O.pivShell, 'Shell', 'printed · teeth underneath', [28, 30, 116], ACC[4]);
+    tag(O.pivWasher, 'Toothed washer', 'printed · 3° teeth', [LOCK[0] + 22, LOCK[1], -2], ACC[4]);
+    tag(O.pivotScrew, 'Pivot screw', 'M5 × 20 socket head', [-26, 0, -12], ACC[4]);
+    tag(O.lockScrew, 'Thumb screw', 'M5 × 20 · the lock', [26, 0, -12], ACC[4]);
+    tag(O.pivScrews[0], 'Wood screws × 2', '#8 flat head, 3 in', [24, 0, 16], ACC[4]);
+    world.add(O.piv);
 
     // Install context: inside corner (side surface at x=0, wall at y=0) and the cable
     O.site = new THREE.Group();
@@ -401,63 +525,98 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.cable = cyl(3, 60, MAT.cable); O.cable.rotation.x = -Math.PI / 2; O.cable.position.set(17, -40, 35);
     O.site.add(side, back, O.cable);
     world.add(O.site);
+
+    // Side-by-side labels, in each option's accent colour
+    O.rowLabels = ['1 · Solid', '2 · Hinge', '3 · Dovetail', '4 · Pivot'].map((txt, i) => {
+      const l = label(txt, '', ACC[i + 1], 14); l.position.set(222.5 - 130 * i, 85, 8); world.add(l); return l;
+    });
   }
 
-  // ---------- timeline ----------
+  // ---------- timeline (scenes match docs/video/storyboard.md) ----------
   const S = [
-    { id: 'sketch',   t0: 0,  t1: 9,  chip: 'The sketch' },
-    { id: 'solid',    t0: 9,  t1: 22, chip: 'Solid block' },
-    { id: 'adjust',   t0: 22, t1: 38, chip: 'Adjustable' },
-    { id: 'explode',  t0: 38, t1: 48, chip: 'The parts' },
-    { id: 'install1', t0: 48, t1: 62, chip: 'Install: solid' },
-    { id: 'install2', t0: 62, t1: 80, chip: 'Install: adjustable' },
-    { id: 'end',      t0: 80, t1: 88, chip: 'Both options' },
+    { id: 'sketch',  t0: 0,   t1: 12,  chip: 'The sketch',         acc: 'n' },
+    { id: 'shared',  t0: 12,  t1: 26,  chip: 'Fixed measurements', acc: 'n' },
+    { id: 'solid',   t0: 26,  t1: 54,  chip: '1 · Solid',          acc: 1 },
+    { id: 'hinge',   t0: 54,  t1: 94,  chip: '2 · Hinge',          acc: 2 },
+    { id: 'slide',   t0: 94,  t1: 134, chip: '3 · Dovetail',       acc: 3 },
+    { id: 'pivot',   t0: 134, t1: 184, chip: '4 · Pivot',          acc: 4 },
+    { id: 'adjust4', t0: 184, t1: 200, chip: 'Adjusting 4',        acc: 4 },
+    { id: 'row',     t0: 200, t1: 218, chip: 'Side by side',       acc: 'n' },
+    { id: 'end',     t0: 218, t1: 230, chip: 'The end',            acc: 'n' },
   ];
-  const DURATION = 88;
+  const DURATION = 230;
 
   const CAP = {
-    sketch:   { k: 'Where it started', t: 'A pencil sketch with one question mark',
-                b: '55 × 110 mm, a wiring pocket, two holes 91.5 mm apart, and an angle marked "?".' },
-    solid:    { k: 'Option 1', t: 'The solid block',
-                b: 'One piece. The camera face turns 8°. The wiring pocket sits behind the camera; the cable comes in from the back.' },
-    adjust:   { k: 'Option 2', t: 'The adjustable mount',
-                b: 'The shell pivots over the base from 3° to 15° in 2° clicks. Teeth hold the angle, so it cannot creep.' },
-    explode:  { k: 'Option 2', t: 'Three printed parts, three M4 bolts',
-                b: 'Base, shell and a toothed washer. Once the shell is on, the base’s screws are hidden.' },
-    install1: { k: 'Install · option 1', t: 'Fitting the solid block',
-                steps: ['Feed the cable through the back.', 'Screw through the side into the frame.', 'Mount the camera on the face.'],
-                n: 'Planned procedure · not yet test-installed' },
-    install2: { k: 'Install · option 2', t: 'Fitting the adjustable mount',
-                steps: ['Screw the base on through its curved side.', 'Slide the shell on and fit the hinge bolts.', 'Set the angle; clamp the washer.', 'Mount the camera.'],
-                n: 'Planned procedure · not yet test-assembled' },
-    end:      { k: 'Open source', t: 'One drawing. Two mounts.',
-                b: 'OpenSCAD source, STLs and measurements on GitHub. Print the solid block, or the adjustable one.' },
+    sketch:  { k: 'Where it started', t: 'From a sketch',
+               b: '55 × 110 mm, a wiring pocket, two holes 91.5 mm apart, and an angle marked "?".' },
+    shared:  { k: 'Every option', t: 'One set of fixed measurements',
+               b: 'Face, Ring holes, cable hole and pocket come from one file, so all four options match.' },
+    solid:   { k: 'Option 1', t: 'Solid block · 8°',
+               b: 'One printed part and two screws. The wiring sits in a pocket behind the camera.' },
+    hinge:   { k: 'Option 2', t: 'Adjustable hinge · 3–15° in 2° steps',
+               b: 'Base, shell and toothed washer, plus M4 bolts. The teeth take the load, not friction.' },
+    slide:   { k: 'Option 3', t: 'Dovetail slide · all printed',
+               b: 'Base, shell and a lock pin. The pin goes into the hole marked with the angle.' },
+    pivot:   { k: 'Option 4', t: 'Pivot with roof · 3–15° in 3° steps',
+               b: 'The base screws on first and its roof keeps the rain off. The shell slides up, pivots on a screw, and a toothed washer locks it.' },
+    adjust4: { k: 'Option 4', t: 'Two turns to adjust',
+               b: 'Loosen the thumb screw, turn the shell, tighten. The washer stays in its track.' },
+    row:     { k: 'Side by side', t: 'Four options, one set of measurements',
+               b: '1: fixed 8° · 2: M4 bolts, 2° steps · 3: no extra hardware · 4: two M5 screws, 3° steps.' },
+    end:     { k: 'Open source', t: 'Built from code',
+               b: 'Every part is generated by OpenSCAD and collision-checked at every angle.' },
   };
 
   // Camera poses in model coordinates
   const orbit = (deg, r, z, tx = 27, ty = 23, tz = 55) =>
     ({ p: [tx + r * Math.cos(deg * D2R), ty + r * Math.sin(deg * D2R), z], t: [tx, ty, tz] });
+  const UNDER = { p: [95, 150, -95], t: [30, 22, 12] };   // looking up at the bottom plate
+  const TOP = { p: [40, 175, 330], t: [27, 25, 50] };
+  const CUT = { p: [70, 210, 40], t: [32, 22, 14] };      // option 4 cutaway, low and in front
   const CAM = {
-    sketch:   (u) => { const a = { p: [27, 330, 380], t: [27, 40, 0] }, b = orbit(55, 260, 150, 27, 23, 45); return mix(a, b, seg(u, 0.25, 1)); },
-    solid:    (u) => orbit(lerp(55, 150, ease(u)), 240, lerp(150, 110, u)),
-    adjust:   (u) => mix({ p: [70, 210, 300], t: [27, 25, 50] }, { p: [40, 175, 330], t: [27, 25, 50] }, ease(u)),
-    explode:  (u) => orbit(lerp(40, 70, u), 290, 170, 40, 20, 55),
-    install1: (u) => orbit(lerp(62, 48, u), 345, 190, 35, 25, 62),
-    install2: (u) => orbit(lerp(48, 64, u), 345, 190, 35, 25, 62),
-    end:      (u) => mix({ p: [10, 400, 230], t: [-15, 20, 50] }, { p: [-5, 430, 250], t: [-15, 20, 50] }, ease(u)),
+    sketch:  (u) => { const a = { p: [27, 330, 380], t: [27, 40, 0] }, b = orbit(55, 260, 150, 27, 23, 45); return mix(a, b, seg(u, 0.25, 1)); },
+    shared:  (u) => orbit(lerp(80, 96, ease(u)), 300, lerp(120, 95, u), 22, 23, 58),
+    solid:   (u) => orbit(lerp(96, 25, ease(u)), lerp(260, 320, bumpy(u, 0.34, 0.62)), lerp(150, 120, u), 40, 23, 50),
+    hinge:   (u) => mix(orbit(lerp(35, 75, u / 0.46), 340, 180, 45, 20, 50), TOP, seg(u, 0.44, 0.52)),
+    slide:   (u) => {
+      let p = orbit(lerp(45, 80, u / 0.4), 350, 190, 30, 25, 45);
+      p = mix(p, { p: [90, 170, -70], t: [30, 15, 10] }, seg(u, 0.38, 0.46));
+      p = mix(p, { p: [45, 200, 330], t: [30, 25, 50] }, seg(u, 0.5, 0.56) * (1 - seg(u, 0.8, 0.86)));
+      return p;
+    },
+    pivot:   (u) => {
+      let p = orbit(lerp(35, 70, u / 0.27), 540, 230, 45, 30, 95);
+      p = mix(p, orbit(lerp(48, 64, u), 345, 190, 35, 25, 62), seg(u, 0.25, 0.3));
+      p = mix(p, UNDER, seg(u, 0.6, 0.66) * (1 - seg(u, 0.76, 0.8)));
+      p = mix(p, CUT, seg(u, 0.77, 0.81) * (1 - seg(u, 0.88, 0.92)));
+      return p;
+    },
+    adjust4: (u) => mix(UNDER, TOP, seg(u, 0.18, 0.3) * (1 - seg(u, 0.62, 0.72))),
+    row:     (u) => orbit(lerp(72, 86, u), 640, 250, 28, 23, 50),
+    end:     (u) => orbit(lerp(86, 92, u), lerp(640, 760, ease(u)), 280, 28, 23, 50),
   };
   function mix(a, b, t) { return { p: a.p.map((v, i) => lerp(v, b.p[i], t)), t: a.t.map((v, i) => lerp(v, b.t[i], t)) }; }
+  function bumpy(u, a, b) { return seg(u, a, a + 0.06) * (1 - seg(u, b - 0.06, b)); }   // up over [a, a+.06], down before b
 
-  // Shell angle during the adjust scene: click through 3..15 then settle on 9
-  function adjustAngle(u) {
-    const seq = [3, 5, 7, 9, 11, 13, 15, 9];
-    const x = Math.min(u / 0.92, 0.9999) * (seq.length - 1);
+  // Click through a list of angles: dwell, then snap to the next
+  function clickThrough(u, seq) {
+    const x = Math.min(u, 0.9999) * (seq.length - 1);
     const i = Math.floor(x), f = x - i;
-    const snap = f < 0.65 ? 0 : ease((f - 0.65) / 0.35);      // dwell, then click to next
+    const snap = f < 0.65 ? 0 : ease((f - 0.65) / 0.35);
     return lerp(seq[i], seq[Math.min(i + 1, seq.length - 1)], snap);
   }
+  const moving = (a, list) => Math.min(1, 4 * Math.min(...list.map((v) => Math.abs(v - a))));   // 1 while between steps
+  function pinAt(a, drop) {                               // option 3 pin under the hole for angle a
+    const h = PIN_HOLES.find((x) => x[0] === a), ang = (h[2] + a) * D2R;
+    O.pin.position.set(SP[0] + h[1] * Math.sin(ang), SP[1] + h[1] * Math.cos(ang), -drop);
+  }
+  const hexMix = (a, b, t) => {                           // '#rrggbb' blend
+    const p = (h) => [1, 3, 5].map((i) => parseInt(h.slice(i, i + 2), 16));
+    const A = p(a), B = p(b);
+    return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join('');
+  };
 
-  // ---------- apply state for time t ----------
+  // ---------- apply state for time t; returns the overlay state ----------
   let lastCapId = '';
   function apply(t) {
     const si = Math.max(0, S.findIndex((s) => t >= s.t0 && t < s.t1));
@@ -465,81 +624,148 @@ code { font-family: var(--mono); font-size: 0.92em; }
     const u = Math.min(1, Math.max(0, (t - s.t0) / (s.t1 - s.t0)));
 
     // defaults
+    for (const m of GLOW) m.material.emissive.setHex(0);
+    for (const o of HOMES) o.position.copy(o.userData.home);
+    for (const l of LABELS) { l.material.opacity = 0; l.visible = false; }
     O.paper.visible = false; O.paper.material.opacity = 1;
-    O.solid.visible = false; O.solid.position.set(0, 0, 0);
-    O.solidDevice.visible = false; O.solidDevice.place(0); O.solidScrews.forEach((x) => (x.visible = false));
-    clipPlane.constant = 1000;
-    O.adj.visible = false; O.adj.position.set(0, 0, 0);
-    O.base.position.set(0, 0, 0);
-    O.shellPivot.visible = true; O.shellSlide.position.set(0, 0, 0);
-    O.adjDevice.visible = false; O.adjDevice.position.y = FACE_FRONT + 11.2;
-    O.washer.visible = true; O.washer.position.set(0, 0, 0);
-    O.clampBolt.visible = true; O.clampBolt.position.x = WASHER_FACE;
-    O.hingeTop.visible = O.hingeBot.visible = true;
-    O.hingeTop.position.z = 110; O.hingeBot.position.z = 0;
-    O.adjScrews.forEach((x) => (x.visible = false));
-    O.site.visible = false; O.cable.visible = true;
-    let angle = 9, readout = 0, activeStep = -1;
+    O.solid.visible = false; O.solid.position.set(0, 0, 0); O.dims.visible = false;
+    O.solidDevice.visible = false; O.solidDevice.place(0); O.solidDevice.cone.visible = false;
+    O.solidScrews.forEach((x) => (x.visible = false));
+    clipPlane.constant = 1000; cutPlane.constant = 1e4;
+    O.adj.visible = false; O.adj.position.set(0, 0, 0); O.adjDevice.visible = false;
+    O.sld.visible = false; O.sld.position.set(0, 0, 0); O.sldDevice.visible = false; O.pinMat.emissive.setHex(0);
+    O.piv.visible = false; O.piv.position.set(0, 0, 0); O.pivPivot.visible = true;
+    O.pivDevice.visible = false; O.pivDevice.cone.visible = false; O.pivDevice.position.y = FACE_FRONT + 11.2;
+    O.pivScrews.forEach((x) => (x.visible = false));
+    O.pivWasher.visible = O.pivotScrew.visible = O.lockScrew.visible = true;
+    O.pivotScrew.rotation.z = O.lockScrew.rotation.z = 0;
+    O.site.visible = false; O.cable.position.y = -40;
+    O.rowLabels.forEach((l) => (l.visible = false));
+    let a2 = 9, a3 = 9, a4 = 9, ro = { show: 0, angle: 9, list: A2 }, endCard = 0;
+    const showTags = (parts, k) => parts.forEach((p) => p.children.forEach((c) => { if (LABELS.includes(c)) { c.visible = k > 0.01; c.material.opacity = k; } }));
 
     switch (s.id) {
       case 'sketch':
         O.paper.visible = true; O.solid.visible = true;
         clipPlane.constant = lerp(0, 112, seg(u, 0.3, 0.95));
         break;
-      case 'solid':
-        O.paper.visible = u < 0.2; O.paper.material.opacity = 1 - seg(u, 0, 0.2);
+      case 'shared':
+        O.paper.visible = u < 0.15; O.paper.material.opacity = 1 - seg(u, 0, 0.15);
+        O.solid.visible = true; O.dims.visible = u > 0.15;
+        O.dims.children.forEach((d, i) => (d.visible = u > 0.2 + 0.15 * i));
+        break;
+      case 'solid': {
         O.solid.visible = true;
-        break;
-      case 'adjust':
-        O.solid.visible = u < 0.12; O.solid.position.x = lerp(0, -160, seg(u, 0, 0.12));
-        O.adj.visible = u > 0.04; O.adj.position.x = lerp(170, 0, seg(u, 0.04, 0.16));
-        angle = u < 0.16 ? 9 : adjustAngle((u - 0.16) / 0.84);
-        readout = seg(u, 0.14, 0.2);
-        break;
-      case 'explode': {
-        O.adj.visible = true;
-        const e = seg(u, 0.05, 0.4) * (1 - seg(u, 0.7, 0.95));
-        O.shellSlide.position.x = 70 * e;
-        O.washer.position.x = 34 * e; O.clampBolt.position.x = WASHER_FACE + 58 * e;
-        O.hingeTop.position.z = 110 + 45 * e; O.hingeBot.position.z = -45 * e;
+        // X-ray: cut through the pocket and cable hole, then close again
+        if (u > 0.05 && u < 0.32) clipPlane.constant = u < 0.2 ? lerp(112, 45, seg(u, 0.05, 0.12)) : lerp(45, 112, seg(u, 0.26, 0.32));
+        const e = seg(u, 0.34, 0.42) * (1 - seg(u, 0.56, 0.62));
+        O.solidScrews.forEach((x) => { x.visible = u > 0.33; off(x, e, 70, 0, 0); });
+        showTags([O.solidBlock, O.solidScrews[0]], seg(u, 0.38, 0.44) * (1 - seg(u, 0.54, 0.58)));
+        glow(O.solidBlock, '#ffffff', bump(u, 0.62, 0.025));
+        O.solidDevice.visible = u > 0.66; O.solidDevice.place(lerp(90, 0, seg(u, 0.66, 0.78)));
+        O.solidDevice.cone.visible = u > 0.78; O.solidDevice.cone.scale.setScalar(Math.max(0.01, seg(u, 0.78, 0.9)));
+        ro = { show: seg(u, 0.78, 0.82), angle: 8, list: [8] };
         break;
       }
-      case 'install1':
-        O.site.visible = true; O.solid.visible = true;
-        O.cable.position.y = lerp(-95, -40, seg(u, 0, 0.18));
-        O.solid.position.set(lerp(140, 0, seg(u, 0.18, 0.38)), lerp(90, 0, seg(u, 0.18, 0.38)), 0);
-        O.solidScrews.forEach((x) => { x.visible = u > 0.4; x.position.x = lerp(140, 55, seg(u, 0.42, 0.62)); });
-        O.solidDevice.visible = u > 0.66;
-        O.solidDevice.place(lerp(90, 0, seg(u, 0.66, 0.86)));
-        activeStep = u < 0.38 ? 0 : u < 0.64 ? 1 : 2;
-        break;
-      case 'install2': {
-        O.site.visible = true; O.adj.visible = true;
-        O.cable.position.y = -40;
-        const baseIn = seg(u, 0, 0.12);
-        O.base.position.set(lerp(140, 0, baseIn), lerp(90, 0, baseIn), 0);
-        O.adjScrews.forEach((x) => { x.visible = u > 0.12; x.position.x = lerp(130, 40, seg(u, 0.14, 0.3)); });
-        O.shellPivot.visible = u > 0.32;
-        O.shellSlide.position.x = lerp(110, 0, seg(u, 0.32, 0.5));
-        const pins = seg(u, 0.5, 0.6);
-        O.hingeTop.visible = O.hingeBot.visible = u > 0.5;
-        O.hingeTop.position.z = 110 + 50 * (1 - pins); O.hingeBot.position.z = -50 * (1 - pins);
-        angle = u < 0.6 ? 9 : lerp(9, 13, seg(u, 0.6, 0.68)) - lerp(0, 4, seg(u, 0.68, 0.74));
-        O.washer.visible = O.clampBolt.visible = u > 0.74;
-        O.washer.position.x = 30 * (1 - seg(u, 0.74, 0.82));
-        O.clampBolt.position.x = WASHER_FACE + 50 * (1 - seg(u, 0.78, 0.86));
-        O.adjDevice.visible = u > 0.87;
-        O.adjDevice.position.y = FACE_FRONT + 11.2 + lerp(90, 0, seg(u, 0.87, 0.98));
-        readout = seg(u, 0.6, 0.64) * (1 - seg(u, 0.86, 0.9));
-        activeStep = u < 0.3 ? 0 : u < 0.6 ? 1 : u < 0.87 ? 2 : 3;
+      case 'hinge': {
+        O.solid.visible = u < 0.08; O.solid.position.x = lerp(0, -170, seg(u, 0, 0.08));
+        O.adj.visible = u > 0.02; O.adj.position.x = lerp(170, 0, seg(u, 0.02, 0.1));
+        const e = seg(u, 0.1, 0.2) * (1 - seg(u, 0.38, 0.44));
+        off(O.shellSlide, e, 80, 0, 0); off(O.washer, e, 34, 0, 0); off(O.clampBolt, e, 64, 0, 0);
+        off(O.hingeTop, e, 0, 0, 50); off(O.hingeBot, e, 0, 0, -50);
+        showTags([O.base, O.adjShell, O.washer, O.hingeTop], seg(u, 0.16, 0.22) * (1 - seg(u, 0.36, 0.4)));
+        const flash = bump(u, 0.44, 0.02);
+        glow(O.adjShell, '#ffffff', flash); glow(O.washer, '#ffffff', flash);
+        a2 = u < 0.48 ? 9 : clickThrough((u - 0.48) / 0.5, [9, 3, 5, 7, 9, 11, 13, 15, 9]);
+        glow(O.washer, ACC.n, u > 0.48 ? moving(a2, A2) : 0);
+        O.adjDevice.visible = u > 0.46;
+        ro = { show: seg(u, 0.46, 0.5), angle: a2, list: A2 };
         break;
       }
-      case 'end':
-        O.solid.visible = true; O.solid.position.x = -85;
-        O.adj.visible = true; angle = 15;
+      case 'slide': {
+        O.adj.visible = u < 0.08; O.adj.position.x = lerp(0, -170, seg(u, 0, 0.08)); a2 = 15; O.adjDevice.visible = true;
+        O.sld.visible = u > 0.02; O.sld.position.x = lerp(170, 0, seg(u, 0.02, 0.1));
+        const e = seg(u, 0.1, 0.18) * (1 - seg(u, 0.32, 0.38));
+        off(O.sldShell, e, 0, 70, 0);
+        showTags([O.sldBase, O.sldShell, O.pinBody], seg(u, 0.14, 0.2) * (1 - seg(u, 0.3, 0.34)));
+        glow(O.sldShell, '#ffffff', bump(u, 0.38, 0.02));
+        O.sldDevice.visible = u > 0.4;
+        // at 3 with the pin in; pin drops; slide to 15 and back to 9; pin goes in
+        const pinOut = Math.max(e, seg(u, 0.44, 0.5) * (1 - seg(u, 0.84, 0.92)));
+        a3 = u < 0.52 ? 3 : u < 0.74 ? lerp(3, 15, seg(u, 0.52, 0.72)) : lerp(15, 9, seg(u, 0.74, 0.8));
+        pinAt(u < 0.62 ? 3 : 9, 30 * pinOut);
+        O.pinMat.emissive.set(ACC[3]).multiplyScalar(0.6 * bumpy(u, 0.82, 0.98));
+        ro = { show: seg(u, 0.4, 0.46), angle: a3, list: A2 };
         break;
+      }
+      case 'pivot': {
+        O.sld.visible = u < 0.05; O.sld.position.x = lerp(0, -170, seg(u, 0, 0.05)); a3 = 15; pinAt(15, 0); O.sldDevice.visible = true;
+        O.piv.visible = u > 0.03;
+        if (u < 0.27) {
+          // the kit: every part, exploded and labelled
+          const e = seg(u, 0.03, 0.09) * (1 - seg(u, 0.24, 0.27));
+          off(O.pivSlide, e, 0, 75, 0); off(O.pivWasher, e, 0, 0, -40);
+          off(O.pivotScrew, e, -15, 0, -55); off(O.lockScrew, e, 10, 0, -70);
+          O.pivScrews.forEach((x) => { x.visible = true; off(x, e, 70, 0, 0); });
+          showTags([O.pivBase, O.pivShell, O.pivWasher, O.pivotScrew, O.lockScrew, O.pivScrews[0]], seg(u, 0.08, 0.12) * (1 - seg(u, 0.22, 0.25)));
+          O.piv.visible = u > 0.03 && u < 0.265;
+          O.piv.position.z = 80 * e;               // lifted, so the parts below it clear the floor
+          break;
+        }
+        // the install
+        O.site.visible = true;
+        O.cable.position.y = lerp(-95, -40, seg(u, 0.27, 0.3));
+        const baseIn = seg(u, 0.28, 0.36);
+        O.pivBase.position.set(lerp(140, 0, baseIn), lerp(90, 0, baseIn), 0);
+        glow(O.pivBase, ACC[4], bumpy(u, 0.34, 0.44));
+        O.pivScrews.forEach((x) => { x.visible = u > 0.36; x.position.x = lerp(130, 49, seg(u, 0.36, 0.43)); });
+        O.pivPivot.visible = u > 0.44;
+        O.pivSlide.position.z = lerp(-150, 0, seg(u, 0.44, 0.56));
+        O.pivotScrew.visible = u > 0.56;
+        O.pivotScrew.position.z = lerp(-40, 0, seg(u, 0.56, 0.62)); O.pivotScrew.rotation.z = 12 * seg(u, 0.57, 0.63);
+        O.pivWasher.visible = u > 0.64; O.pivWasher.position.z = lerp(-30, 0, seg(u, 0.64, 0.7));
+        O.lockScrew.visible = u > 0.68;
+        O.lockScrew.position.z = LOCK[2] + lerp(-40, 0, seg(u, 0.68, 0.76)); O.lockScrew.rotation.z = 14 * seg(u, 0.7, 0.77);
+        glow(O.pivWasher, ACC[4], bumpy(u, 0.72, 0.8)); glow(O.pivShell, ACC[4], 0.6 * bumpy(u, 0.72, 0.8));
+        if (u > 0.79 && u < 0.9) cutPlane.constant = lerp(80, LOCK[1], seg(u, 0.79, 0.83));
+        O.pivDevice.visible = u > 0.9; O.pivDevice.position.y = FACE_FRONT + 11.2 + lerp(90, 0, seg(u, 0.9, 0.97));
+        O.pivDevice.cone.visible = u > 0.97; O.pivDevice.cone.scale.setScalar(Math.max(0.01, seg(u, 0.97, 1)));
+        ro = { show: seg(u, 0.76, 0.8), angle: 9, list: A4 };
+        break;
+      }
+      case 'adjust4': {
+        O.site.visible = true; O.piv.visible = true; O.pivDevice.visible = true;
+        O.pivScrews.forEach((x) => (x.visible = true));
+        // loosen 2 turns (washer and screw drop 1.6 mm), swing to 15, tighten
+        const loose = seg(u, 0.04, 0.16) * (1 - seg(u, 0.74, 0.86));
+        O.lockScrew.position.z = LOCK[2] - 1.6 * loose; O.pivWasher.position.z = -1.6 * loose;
+        O.lockScrew.rotation.z = -4 * Math.PI * seg(u, 0.04, 0.16) + 4 * Math.PI * seg(u, 0.74, 0.86);
+        a4 = clickThrough(seg(u, 0.3, 0.62), [9, 12, 15]);
+        glow(O.pivWasher, ACC[4], bumpy(u, 0.74, 0.92));
+        ro = { show: 1, angle: a4, list: A4 };
+        break;
+      }
+      case 'row':
+      case 'end': {
+        O.solid.visible = O.adj.visible = O.sld.visible = O.piv.visible = true;
+        O.solidDevice.visible = O.adjDevice.visible = O.sldDevice.visible = O.pivDevice.visible = true;
+        // seen from the front, +x is on the left: option 1 sits at +x so the row reads 1 to 4
+        O.solid.position.x = 195; O.adj.position.x = 65; O.sld.position.x = -65; O.piv.position.x = -195;
+        a2 = 15; a3 = 15; a4 = 15; pinAt(15, 0);
+        const shells = [O.solidBlock, O.adjShell, O.sldShell, O.pivShell];
+        O.rowLabels.forEach((l, i) => {
+          const k = s.id === 'row' ? bumpy(u, 0.1 + 0.2 * i, 0.32 + 0.2 * i) : 0;
+          l.visible = s.id === 'row' || u < 0.2;
+          l.scale.set(14 * 6 * (1 + 0.35 * k), 14 * (1 + 0.35 * k), 1);
+          glow(shells[i], ACC[i + 1], k);
+        });
+        endCard = s.id === 'end' ? seg(u, 0.05, 0.25) : 0;
+        break;
+      }
     }
-    O.shellPivot.rotation.z = -angle * D2R;
+    O.shellPivot.rotation.z = -a2 * D2R;
+    O.sldPivot.rotation.z = -a3 * D2R;
+    O.pivPivot.rotation.z = -a4 * D2R;
 
     // camera, blended from the previous scene's last pose over 1.2 s
     let pose = CAM[s.id](u);
@@ -549,24 +775,35 @@ code { font-family: var(--mono); font-size: 0.92em; }
     const p = M(...pose.p), tg = M(...pose.t);
     cam.position.copy(p); cam.lookAt(tg);
 
-    // overlays
+    // accent colour, blended from the previous scene's over 1.2 s
+    let acc = ACC[s.acc];
+    if (prev && blend < 1) acc = hexMix(ACC[prev.acc], acc, ease(blend));
+
+    const shown = ro.list.reduce((best, a) => Math.abs(a - ro.angle) < Math.abs(best - ro.angle) ? a : best, ro.list[0]);
+    return { id: s.id, cap: CAP[s.id], capShow: s.id === 'end' ? 1 - endCard : 1, readout: ro.show, deg: shown,
+             list: ro.list, endCard, accent: acc,
+             sweepTop: hexMix('#eef0f1', acc, 0.1), sweepBottom: hexMix('#c9ced2', acc, 0.32) };
+  }
+
+  function overlays(st) {
+    const stage = $('stage');
+    stage.style.background = `radial-gradient(120% 90% at 50% 20%, ${st.sweepTop}, ${st.sweepBottom})`;
+    stage.style.setProperty('--accent', st.accent);
     $('titleCard').style.opacity = t < 0.6 && !playing ? 1 : 0;
-    $('caption').style.opacity = t < 0.6 && !playing ? 0 : 1;
-    if (lastCapId !== s.id) {
-      const c = CAP[s.id];
+    $('endCard').style.opacity = st.endCard;
+    $('caption').style.opacity = t < 0.6 && !playing ? 0 : st.capShow;
+    if (lastCapId !== st.id) {
+      const c = st.cap;
       $('capKicker').textContent = c.k; $('capTitle').textContent = c.t;
       $('capBody').textContent = c.b || ''; $('capBody').hidden = !c.b;
       $('capNote').textContent = c.n || ''; $('capNote').hidden = !c.n;
-      $('capSteps').innerHTML = (c.steps || []).map((x, i) => `<li><span>${i + 1}</span>${x}</li>`).join('');
-      $('capSteps').hidden = !c.steps;
-      lastCapId = s.id;
-      document.querySelectorAll('.chip').forEach((el) => el.classList.toggle('on', el.dataset.id === s.id));
+      lastCapId = st.id;
+      document.querySelectorAll('.chip').forEach((el) => el.classList.toggle('on', el.dataset.id === st.id));
     }
-    [...$('capSteps').children].forEach((li, i) => li.classList.toggle('on', i === activeStep));
-    $('readout').style.opacity = readout;
-    const shown = ANGLES.reduce((best, a) => Math.abs(a - angle) < Math.abs(best - angle) ? a : best, 3);
-    $('deg').textContent = shown + '°';
-    [...$('ticks').children].forEach((el, i) => el.classList.toggle('on', ANGLES[i] <= shown));
+    $('readout').style.opacity = st.readout;
+    $('deg').textContent = st.deg + '°';
+    if ($('ticks').children.length !== st.list.length) $('ticks').innerHTML = st.list.map(() => '<i></i>').join('');
+    [...$('ticks').children].forEach((el, i) => el.classList.toggle('on', st.list[i] <= st.deg));
   }
 
   // ---------- playback ----------
@@ -589,9 +826,9 @@ code { font-family: var(--mono); font-size: 0.92em; }
     t = S.find((s) => s.id === b.dataset.id).t0 + 0.01;
     if (!reduceMotion) setPlaying(true);
   });
-  $('ticks').innerHTML = ANGLES.map(() => '<i></i>').join('');
 
   function resize() {
+    if (RECORD) return;                                  // the recorder fixes the size
     const r = $('stage').getBoundingClientRect();
     renderer.setSize(r.width, r.height, false);
     cam.aspect = r.width / r.height; cam.updateProjectionMatrix();
@@ -604,7 +841,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
       if (t >= DURATION) { t = DURATION; setPlaying(false); }
     }
     if (O.solid) {
-      apply(Math.min(t, DURATION - 0.001));
+      overlays(apply(Math.min(t, DURATION - 0.001)));
       $('scrub').value = t.toFixed(1);
       $('time').textContent = `${fmt(t)} / ${fmt(DURATION)}`;
       renderer.render(scene, cam);
@@ -614,9 +851,16 @@ code { font-family: var(--mono); font-size: 0.92em; }
 
   build().then(() => {
     $('loading').hidden = true;
+    if (RECORD) {
+      // tools/record_video.js drives the timeline frame by frame
+      window.DEMO = { renderer, scene, cam, apply, S, DURATION,
+                      render: (time) => { const st = apply(time); renderer.render(scene, cam); return st; } };
+      const s = document.createElement('script'); s.src = 'tools/record_video.js'; document.body.appendChild(s);
+      return;
+    }
     resize();
     t = 6.5;                       // resting frame: the block rising out of the sketch
-    apply(t); renderer.render(scene, cam);
+    overlays(apply(t)); renderer.render(scene, cam);
     if (!reduceMotion) { t = 0; setPlaying(true); }
     requestAnimationFrame(frame);
   }).catch((err) => {
