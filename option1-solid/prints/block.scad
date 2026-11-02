@@ -12,6 +12,9 @@ include <../option1_solid.scad>   // the model; keep this line first (see note a
 // depth_deep   = 46;    // depth at the deep (mounting) side, mm
 // face_chamfer = 1.5;   // 45 degree bevel on the camera-face edges, mm; 0 = none
 
+// --- Wiring pocket (option 1 only) ---
+// block_pocket_depth = 20;   // depth behind the camera face, mm (keep under ~35 for a 4 mm back wall)
+
 // --- Mounting screws (#8 flat head, through the side) ---
 // screw_y           = 19.5;      // distance from the back face, mm
 // screw_z           = [22, 88];  // heights of the two screws, mm
@@ -20,7 +23,8 @@ include <../option1_solid.scad>   // the model; keep this line first (see note a
 // --- Fixed by the sketch: change these only in ../../mount_common.scad ---
 // They are shared by all four options, and the build fails if they're set here:
 //   width 55 x height 110 · Ring holes 2.25 mm, 91.5 mm apart, 12 mm deep ·
-//   pocket 34.3 wide, 30-60 mm up, 15 deep · cable hole 8 mm, 35 mm up ·
+//   pocket 34.3 wide, 30-60 mm up (its depth is block_pocket_depth above) ·
+//   cable hole 8 mm, 35 mm up ·
 //   #8 screw size (4.6 mm hole, 8.8 mm head, 82 degree countersink)
 
 // Note: OpenSCAD uses the LAST value set for a variable, so a value set here

@@ -27,7 +27,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Block](../option1-solid/stl/block.stl) | 55.00 × 45.79 × 110.00 | 235.52 | yes |
+| [Block](../option1-solid/stl/block.stl) | 55.00 × 45.79 × 110.00 | 230.58 | yes |
 
 ### Envelope
 
@@ -52,7 +52,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 | `pocket_z_max` | 60 | written | top of pocket above block bottom |
 | `pocket_deep_inset` | 9 | scaled | pocket edge to deep side, front view |
 | `pocket_width` | 34.3 | scaled | front-view width |
-| `pocket_depth` | 15 | fixed | behind the camera plate |
+| `pocket_depth` | 15 | fixed | behind the camera plate (options 2-4; option 1 uses its own block_pocket_depth, 20) |
 
 ### Cable hole
 
@@ -77,6 +77,12 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 | `depth_deep` | 46 | scaled | depth at the deep (mounting) side |
 | `face_angle` | 8 | chosen | degrees the camera face is turned |
 | `face_chamfer` | 1.5 | chosen | 45 degree bevel on the camera-face edges; 0 = none |
+
+### Pocket
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `block_pocket_depth` | 20 | chosen | behind the camera face, measured square to the face |
 
 ### Block mounting screws
 
@@ -122,7 +128,7 @@ Source file: [`option2-hinge/option2_hinge.scad`](../option2-hinge/option2_hinge
 | `pocket_z_max` | 60 | written | top of pocket above block bottom |
 | `pocket_deep_inset` | 9 | scaled | pocket edge to deep side, front view |
 | `pocket_width` | 34.3 | scaled | front-view width |
-| `pocket_depth` | 15 | fixed | behind the camera plate |
+| `pocket_depth` | 15 | fixed | behind the camera plate (options 2-4; option 1 uses its own block_pocket_depth, 20) |
 
 ### Cable hole
 
@@ -247,7 +253,7 @@ Source file: [`option3-dovetail/option3_dovetail.scad`](../option3-dovetail/opti
 | `pocket_z_max` | 60 | written | top of pocket above block bottom |
 | `pocket_deep_inset` | 9 | scaled | pocket edge to deep side, front view |
 | `pocket_width` | 34.3 | scaled | front-view width |
-| `pocket_depth` | 15 | fixed | behind the camera plate |
+| `pocket_depth` | 15 | fixed | behind the camera plate (options 2-4; option 1 uses its own block_pocket_depth, 20) |
 
 ### Cable hole
 
@@ -371,7 +377,7 @@ Source file: [`option4-pivot/option4_pivot.scad`](../option4-pivot/option4_pivot
 | `pocket_z_max` | 60 | written | top of pocket above block bottom |
 | `pocket_deep_inset` | 9 | scaled | pocket edge to deep side, front view |
 | `pocket_width` | 34.3 | scaled | front-view width |
-| `pocket_depth` | 15 | fixed | behind the camera plate |
+| `pocket_depth` | 15 | fixed | behind the camera plate (options 2-4; option 1 uses its own block_pocket_depth, 20) |
 
 ### Cable hole
 

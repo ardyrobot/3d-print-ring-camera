@@ -20,7 +20,7 @@ pocket_z_min      = 30;    // [written] bottom of pocket above block bottom
 pocket_z_max      = 60;    // [written] top of pocket above block bottom
 pocket_deep_inset = 9;     // [scaled]  pocket edge to deep side, front view
 pocket_width      = 34.3;  // [scaled]  front-view width
-pocket_depth      = 15;    // [fixed]   behind the camera plate
+pocket_depth      = 15;    // [fixed]   behind the camera plate (options 2-4; option 1 uses its own block_pocket_depth, 20)
 
 /* [Cable hole] */
 cable_d          = 8;      // [written]

@@ -24,6 +24,12 @@ depth_deep  = 46;     // [scaled]  depth at the deep (mounting) side
 face_angle  = 8;      // [chosen]  degrees the camera face is turned
 face_chamfer = 1.5;   // [chosen]  45 degree bevel on the camera-face edges; 0 = none
 
+/* [Pocket] */
+// Option 1 only (Cat, 2026-11-02): deeper than the shared pocket_depth (15 mm,
+// still used by options 2-4) to leave room for the wires. Leaves about 19.5 mm
+// of plastic behind the pocket at its shallow end.
+block_pocket_depth = 20;   // [chosen] behind the camera face, measured square to the face
+
 /* [Block mounting screws] */
 screw_y           = 19.5;     // [scaled] distance from back face (position not fixed; size is shared)
 screw_z           = [22, 88]; // [scaled] heights
@@ -77,8 +83,8 @@ module pocket() {
     u0 = face_u(pocket_deep_inset);
     u1 = face_u(pocket_deep_inset + pocket_width);
     // Extra +Y so the cut clears the face completely
-    on_face() translate([u0, -pocket_depth, pocket_z_min])
-        cube([u1 - u0, pocket_depth + 5, pocket_z_max - pocket_z_min]);
+    on_face() translate([u0, -block_pocket_depth, pocket_z_min])
+        cube([u1 - u0, block_pocket_depth + 5, pocket_z_max - pocket_z_min]);
 }
 
 module cable_hole() {
