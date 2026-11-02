@@ -5,6 +5,8 @@ Each print file includes its option's model and may override values for that one
 print (the last assignment wins in OpenSCAD). Rules:
   - error:   overriding a fixed measurement from mount_common.scad
   - error:   `part = "..."` doesn't match the file name (the STL would be the wrong part)
+  - error:   a commented `// name = value;` line (the list of defaults) no longer
+             matches the model's value, so the list would mislead
   - warning: overriding a print tolerance two parts share (the mating part would no
              longer match); change those in the model file instead
 Standard library only.
@@ -32,12 +34,20 @@ def main():
                   if section == "Print tolerances" and name not in SINGLE_PART}
         has_part = any(section == "Render" and name == "part" for section, name, *_ in
                        parse_all(model))
+        defaults = {name: value for _, name, value, *_ in parse(model)}
         names = {}
         with open(pf, encoding="utf-8") as f:
             for line in f:
                 m = ASSIGN.match(line.split("//")[0])
                 if m:
                     names[m.group(1)] = m.group(2).strip()
+                    continue
+                # a commented "// name = value;" documents the model's default: it must match
+                m = re.match(r"^\s*//\s*([A-Za-z_]\w*)\s*=\s*(.+?);", line)
+                if m and m.group(1) in defaults and \
+                        m.group(2).replace(" ", "") != defaults[m.group(1)].replace(" ", ""):
+                    errors.append(f"{rel}: listed default {m.group(1)} = {m.group(2)} but the model has "
+                                  f"{defaults[m.group(1)]}; update the list")
         for n in names:
             if n in fixed:
                 errors.append(f"{rel}: '{n}' is a fixed measurement; change it in mount_common.scad")

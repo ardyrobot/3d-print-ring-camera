@@ -1,16 +1,28 @@
-// Print file: option 1 (solid block), the block.
-// build.ps1 exports ../stl/block.stl from this file. Print orientation: Lying on the back face (flat, 55 x 110).
-//
-// To change this one print: uncomment a setting below (or add any value from
-// ../option1_solid.scad), then in OpenSCAD press F6 and use File > Export > STL.
-// The last value set wins, so a setting here only affects this print.
-//   - Fixed measurements (mount_common.scad) can't be changed here: the build fails.
-//   - Print tolerances that two parts share must match, so change those in
-//     ../option1_solid.scad instead. The build warns if one is set here.
+include <../option1_solid.scad>   // the model; keep this line first (see note at the bottom)
 
-include <../option1_solid.scad>
+// ================== OPTION 1 · SOLID BLOCK · VARIABLES ==================
+// To change this print: delete the // at the start of a line, change the
+// number, then in OpenSCAD press F6 and File > Export > STL (or run build.ps1,
+// which exports ../stl/block.stl from this file).
+// The values shown are the current defaults from ../option1_solid.scad; the
+// build fails if they ever stop matching, so this list stays true.
 
-// Settings for this print:
-// face_angle   = 8;     // camera face angle, degrees
-// face_chamfer = 1.5;   // bevel on the camera-face edges, 0 = none
-// screw_head_recess = 0; // sink the screw heads deeper to use shorter screws
+// --- Block ---
+// face_angle   = 8;     // degrees the camera face is turned (the mount's angle)
+// depth_deep   = 46;    // depth at the deep (mounting) side, mm
+// face_chamfer = 1.5;   // 45 degree bevel on the camera-face edges, mm; 0 = none
+
+// --- Mounting screws (#8 flat head, through the side) ---
+// screw_y           = 19.5;      // distance from the back face, mm
+// screw_z           = [22, 88];  // heights of the two screws, mm
+// screw_head_recess = 0;         // sink the heads deeper (mm) to use shorter screws
+
+// --- Fixed by the sketch: change these only in ../../mount_common.scad ---
+// They are shared by all four options, and the build fails if they're set here:
+//   width 55 x height 110 · Ring holes 2.25 mm, 91.5 mm apart, 12 mm deep ·
+//   pocket 34.3 wide, 30-60 mm up, 15 deep · cable hole 8 mm, 35 mm up ·
+//   #8 screw size (4.6 mm hole, 8.8 mm head, 82 degree countersink)
+
+// Note: OpenSCAD uses the LAST value set for a variable, so a value set here
+// (after the include) wins over the model's default and changes only this print.
+// Print orientation: lying on the back face (flat, 55 x 110).

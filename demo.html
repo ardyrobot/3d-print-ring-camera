@@ -552,7 +552,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
     if (!cd || cd.alpha < 0.01) return;
     const k = CODE[cd.id], S = w / 1100, pad = 14 * S, lh = 22 * S;
     c.save(); c.globalAlpha = cd.alpha;
-    const x = 0.03 * w, y = 0.05 * h, bw = 0.5 * w, bh = pad * 2 + 24 * S + k.lines.length * lh;
+    const bw = 0.45 * w, bh = pad * 2 + 24 * S + k.lines.length * lh, x = 0.97 * w - bw, y = 0.95 * h - bh;   // bottom right, clear of the caption and readout
     c.fillStyle = 'rgba(24,28,32,0.9)'; c.beginPath(); c.roundRect ? c.roundRect(x, y, bw, bh, 8 * S) : c.rect(x, y, bw, bh); c.fill();
     c.font = `500 ${11 * S}px "IBM Plex Mono", Consolas, monospace`; c.fillStyle = '#9fb3bf';
     c.fillText(k.file, x + pad, y + pad + 10 * S);
@@ -667,7 +667,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.h2 = [tag(O.nuts[1], 'Hinge nut', 'trapped by the mounting surface', [-30, 10, 14], ACC[2]),
             tag(O.clampNut, 'Clamp nut', 'trapped by the wall', [16, -8, 22], ACC[2]),
             tag(O.washer, 'Teeth carry the load', 'the bolt squeezes them together', [66, 0, 54], ACC[2]),
-            tag(O.adj, 'Washer track + curved slot', 'the washer sits here; the clamp bolt runs through the slot', [78, 34, 92], ACC[2])];
+            tag(O.adj, 'Washer track + curved slot', 'the washer sits here; the clamp bolt runs through the slot', [70, 40, 96], ACC[2], 9)];
     world.add(O.adj);
 
     // Option 3 (the section plane applies to its printed parts)
@@ -716,7 +716,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.h4 = [tag(O.piv, '14 mm of thread', 'pivot screw, printed thread', [-14, 34, 16], ACC[4], 12),
             tag(O.piv, '10 mm of thread', 'lock screw, printed thread', [62, 26, 14], ACC[4], 12),
             tag(O.piv, 'Roof 0.4 mm above', 'the shell cannot rise', [30, 30, 122], ACC[4], 12),
-            tag(O.piv, 'Curved slot + toothed track', "the lock screw passes through; the washer can't turn", [44, 40, -14], ACC[4], 12),
+            tag(O.piv, 'Curved slot + toothed track', "the lock screw passes through; the washer can't turn", [84, 30, -26], ACC[4], 9),
             tag(O.piv, 'Nylon locking patch', 'on both screws', [-14, 34, -16], ACC[4], 12)];
     world.add(O.piv);
 
@@ -805,7 +805,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
   const orbit = (deg, r, z, tx = 27, ty = 23, tz = 55) =>
     ({ p: [tx + r * Math.cos(deg * D2R), ty + r * Math.sin(deg * D2R), z], t: [tx, ty, tz] });
   const UNDER = { p: [95, 150, -95], t: [30, 22, 12] };   // looking up at the bottom plate
-  const OVER = { 1: { p: [30, -10, 400], t: [30, 34, 55] }, 2: { p: [32, -10, 430], t: [32, 40, 60] }, 3: { p: [30, -24, 470], t: [30, 28, 60] }, 4: { p: [32, -10, 430], t: [32, 40, 60] } };
+  const OVER = { 1: { p: [30, 0, 430], t: [30, 52, 55] }, 2: { p: [32, -10, 430], t: [32, 40, 60] }, 3: { p: [30, -24, 470], t: [30, 28, 60] }, 4: { p: [32, -10, 430], t: [32, 40, 60] } };
   const N4 = [0.1737, 0.9848];                            // option 4 cutaway: normal of the plane through both screw axes
   const CUT4 = { p: [25 + 240 * N4[0], 27 + 240 * N4[1], 75], t: [25, 27, 42] };
   const CAM = {
@@ -844,7 +844,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
     },
     hold4:   (u) => {
       let p = mix(OVER[4], CUT4, seg(u, 0, 0.06));
-      p = mix(p, { p: [92, 118, -78], t: [38, 24, 0] }, seg(u, 0.36, 0.42));        // under the plate: slot and track
+      p = mix(p, { p: [120, 160, -120], t: [36, 22, 0] }, seg(u, 0.36, 0.42));        // under the plate: slot and track
       return mix(p, orbit(45, 340, 190, 35, 25, 60), seg(u, 0.74, 0.8));
     },
     adjust4: (u) => mix(UNDER, OVER[4], seg(u, 0.18, 0.26) * (1 - seg(u, 0.68, 0.76))),
