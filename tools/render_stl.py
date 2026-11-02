@@ -1,8 +1,8 @@
 """Render orthographic PNG previews of a binary STL (flat shading, z-buffer, edge lines).
 
 Usage: python tools/render_stl.py <file.stl> <outdir> [prefix] [view ...]
-  e.g. python tools/render_stl.py stl/ring_mount.stl docs
-       python tools/render_stl.py stl/adjustable_assembly_15.stl docs adjustable-15 3d top
+  e.g. python tools/render_stl.py option1-solid/stl/block.stl option1-solid/docs block
+       python tools/render_stl.py option2-hinge/stl/assembly_15.stl option2-hinge/docs assembly-15 3d top
 Writes <outdir>/<prefix>-<view>.png (prefix defaults to "preview", views to all).
 Standard library only. Exists because OpenSCAD's own PNG export fails on this
 laptop ("Unable to create FBO"); rendering the exported STL also means the

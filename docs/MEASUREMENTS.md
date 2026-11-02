@@ -19,15 +19,15 @@ same in every option; the build fails if a model redefines one.
 Axes: X = width (0 = deep side, against the mounting surface) · Y = depth
 (0 = back face, cable entry) · Z = height (0 = bottom).
 
-## Solid block (primary)
+## Option 1: solid block (primary)
 
-Source file: [`ring_mount.scad`](../ring_mount.scad)
+Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid.scad)
 
 ### Built size (from the exported STLs)
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Block](../stl/ring_mount.stl) | 55.00 × 45.79 × 110.00 | 235.52 | yes |
+| [Block](../option1-solid/stl/block.stl) | 55.00 × 45.79 × 110.00 | 235.52 | yes |
 
 ### Envelope
 
@@ -86,18 +86,18 @@ Source file: [`ring_mount.scad`](../ring_mount.scad)
 | `screw_z` | [22, 88] | scaled | heights |
 | `screw_head_recess` | 0 | chosen | extra counterbore depth to shorten screws |
 
-## Adjustable mount (option 2)
+## Option 2: adjustable hinge
 
-Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
+Source file: [`option2-hinge/option2_hinge.scad`](../option2-hinge/option2_hinge.scad)
 
 ### Built size (from the exported STLs)
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Base](../stl/adjustable_base.stl) | 52.76 × 39.35 × 101.20 | 148.92 | yes |
-| [Shell](../stl/adjustable_shell.stl) | 57.27 × 110.00 × 32.36 | 45.55 | yes |
-| [Washer](../stl/adjustable_washer.stl) | 14.00 × 13.20 × 4.52 | 0.64 | yes |
-| [Fit test (3 pieces, as laid out)](../stl/adjustable_fit_test.stl) | 78.50 × 78.00 × 32.36 | 32.24 | yes |
+| [Base](../option2-hinge/stl/base.stl) | 52.76 × 39.35 × 101.20 | 148.92 | yes |
+| [Shell](../option2-hinge/stl/shell.stl) | 57.27 × 110.00 × 32.36 | 45.55 | yes |
+| [Washer](../option2-hinge/stl/washer.stl) | 14.00 × 13.20 × 4.52 | 0.64 | yes |
+| [Fit test (3 pieces, as laid out)](../option2-hinge/stl/fit_test.stl) | 78.50 × 78.00 × 32.36 | 32.24 | yes |
 
 ### Envelope
 
@@ -211,18 +211,18 @@ Source file: [`ring_mount_adjustable.scad`](../ring_mount_adjustable.scad)
 | `text_size` | 3.2 | chosen | label height |
 | `engrave` | 0.6 | chosen | engraving depth |
 
-## Slide mount (option 3)
+## Option 3: dovetail slide
 
-Source file: [`ring_mount_slide.scad`](../ring_mount_slide.scad)
+Source file: [`option3-dovetail/option3_dovetail.scad`](../option3-dovetail/option3_dovetail.scad)
 
 ### Built size (from the exported STLs)
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Base](../stl/slide_base.stl) | 55.00 × 34.00 × 101.20 | 134.87 | yes |
-| [Shell](../stl/slide_shell.stl) | 55.00 × 110.00 × 43.26 | 85.92 | yes |
-| [Pin](../stl/slide_pin.stl) | 16.99 × 9.60 × 10.00 | 0.42 | yes |
-| [Fit test (3 pieces, as laid out)](../stl/slide_fit_test.stl) | 114.49 × 70.60 × 43.66 | 55.18 | yes |
+| [Base](../option3-dovetail/stl/base.stl) | 55.00 × 34.00 × 101.20 | 134.87 | yes |
+| [Shell](../option3-dovetail/stl/shell.stl) | 55.00 × 110.00 × 43.26 | 85.92 | yes |
+| [Pin](../option3-dovetail/stl/pin.stl) | 16.99 × 9.60 × 10.00 | 0.42 | yes |
+| [Fit test (3 pieces, as laid out)](../option3-dovetail/stl/fit_test.stl) | 114.49 × 70.60 × 43.66 | 55.18 | yes |
 
 ### Envelope
 
@@ -335,18 +335,18 @@ Source file: [`ring_mount_slide.scad`](../ring_mount_slide.scad)
 | `screw_y` | 13 | chosen | lower than the sketch's 19.5 so the heads sit below the shell's path (positions aren't fixed); 13 leaves 8.5 mm behind the counterbore |
 | `screw_z` | [22, 88] | scaled | heights |
 
-## Pivot mount (option 4)
+## Option 4: pivot with roof
 
-Source file: [`ring_mount_pivot.scad`](../ring_mount_pivot.scad)
+Source file: [`option4-pivot/option4_pivot.scad`](../option4-pivot/option4_pivot.scad)
 
 ### Built size (from the exported STLs)
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Base (with roof)](../stl/pivot_base.stl) | 57.27 × 45.32 × 103.60 | 154.62 | yes |
-| [Shell](../stl/pivot_shell.stl) | 57.27 × 105.20 × 28.14 | 39.07 | yes |
-| [Washer](../stl/pivot_washer.stl) | 13.02 × 9.28 × 4.90 | 0.29 | yes |
-| [Fit test (3 pieces, as laid out)](../stl/pivot_fit_test.stl) | 82.93 × 71.75 × 28.14 | 39.33 | yes |
+| [Base (with roof)](../option4-pivot/stl/base.stl) | 57.27 × 45.32 × 103.60 | 154.62 | yes |
+| [Shell](../option4-pivot/stl/shell.stl) | 57.27 × 105.20 × 28.14 | 39.07 | yes |
+| [Washer](../option4-pivot/stl/washer.stl) | 13.02 × 9.28 × 4.90 | 0.29 | yes |
+| [Fit test (3 pieces, as laid out)](../option4-pivot/stl/fit_test.stl) | 82.93 × 71.75 × 28.14 | 39.33 | yes |
 
 ### Envelope
 

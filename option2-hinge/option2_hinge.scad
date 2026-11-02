@@ -1,5 +1,5 @@
 // Adjustable Ring camera mount: a camera shell nested over a hinged base.
-// Secondary print option; the solid block (ring_mount.scad) stays the primary part.
+// Secondary print option; the solid block (option 1, option1-solid/option1_solid.scad) stays the primary part.
 // Edit values here, then run build.ps1.
 //
 // How it works
@@ -19,7 +19,7 @@
 //
 // Source tags: [written] sketch value, [scaled] measured off sketch, [chosen] design decision.
 //
-// Coordinate frame (mm), same as ring_mount.scad:
+// Coordinate frame (mm), same as option 1:
 //   X = width,  0 = deep side (mounting surface), 55 = shallow side
 //   Y = depth,  0 = back face (cable entry)
 //   Z = height, 0 = bottom
@@ -28,7 +28,7 @@
 
 // Fixed measurements shared by all options: width, height, Ring holes, pocket,
 // cable hole, mounting screws. Edit them in mount_common.scad, not here.
-include <mount_common.scad>
+include <../mount_common.scad>
 
 /* [Render] */
 part           = "assembly";  // [assembly, base, shell, washer, fit_test, clash]

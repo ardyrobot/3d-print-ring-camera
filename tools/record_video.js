@@ -31,7 +31,7 @@
       const comp = document.createElement('canvas'); comp.width = W; comp.height = H;
       const ctx = comp.getContext('2d'), t = parseFloat(snap), st = render(t);
       backdrop(ctx, st); ctx.drawImage(renderer.domElement, 0, 0, W, H);
-      window.DEMO.drawSketch(ctx, W, H, st.sketch); overlay(ctx, st, t);
+      window.DEMO.drawSketch(ctx, W, H, st.sketch); window.DEMO.drawCode(ctx, W, H, st.code); overlay(ctx, st, t);
       comp.style.cssText = 'position:fixed;inset:0;width:100vw;height:auto;z-index:8';
       document.body.appendChild(comp);
       status(`snap t=${t}`);
@@ -89,7 +89,7 @@
       const st = render(t);
       backdrop(ctx, st);
       ctx.drawImage(renderer.domElement, 0, 0, W, H);
-      window.DEMO.drawSketch(ctx, W, H, st.sketch);
+      window.DEMO.drawSketch(ctx, W, H, st.sketch); window.DEMO.drawCode(ctx, W, H, st.code);
       overlay(ctx, st, t);
       const vf = new VideoFrame(comp, { timestamp: Math.round(f * 1e6 / FPS), duration: Math.round(1e6 / FPS) });
       ve.encode(vf, { keyFrame: f % (FPS * 2) === 0 });
@@ -138,9 +138,10 @@
       const pad = 16 * S, maxW = 500 * S;
       c.font = `400 ${14 * S}px "IBM Plex Sans", "Segoe UI", sans-serif`;
       const body = wrap(c, st.cap.b || '', maxW);
+      const steps = st.cap.steps || [];
       c.font = `600 ${24 * S}px "Familjen Grotesk", Arial, sans-serif`;
       const title = wrap(c, st.cap.t, maxW);
-      const h = pad * 2 + 16 * S + title.length * 28 * S + body.length * 21 * S + 4 * S;
+      const h = pad * 2 + 16 * S + title.length * 28 * S + body.length * 21 * S + 4 * S + (steps.length ? 8 * S + steps.length * 21 * S : 0);
       const w = maxW + pad * 2, x = 0.03 * W, y = H - 0.05 * H - h;
       c.fillStyle = 'rgba(255,255,255,0.82)'; rrect(c, x, y, w, h, 8 * S); c.fill();
       let yy = y + pad + 11 * S;
@@ -151,6 +152,15 @@
       c.fillStyle = '#5a656d'; c.font = `400 ${14 * S}px "IBM Plex Sans", "Segoe UI", sans-serif`;
       yy += 4 * S;
       for (const l of body) { yy += 21 * S; c.fillText(l, x + pad, yy); }
+      // numbered steps; the one happening now is highlighted
+      if (steps.length) yy += 8 * S;
+      steps.forEach((txt, i) => {
+        yy += 21 * S; const on = i === st.step;
+        c.font = `500 ${14 * S}px "IBM Plex Mono", Consolas, monospace`; c.fillStyle = on ? st.accent : '#9aa3aa';
+        c.fillText(String(i + 1), x + pad, yy);
+        c.font = `${on ? 600 : 400} ${14 * S}px "IBM Plex Sans", "Segoe UI", sans-serif`; c.fillStyle = on ? '#1f2428' : '#7a848b';
+        c.fillText(txt, x + pad + 22 * S, yy);
+      });
       c.restore();
     }
     // angle readout, upper right

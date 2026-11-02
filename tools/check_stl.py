@@ -1,6 +1,6 @@
 """Sanity-check a binary STL: bounding box, volume, and whether the mesh is closed.
 
-Usage: python tools/check_stl.py stl/ring_mount.stl
+Usage: python tools/check_stl.py option1-solid/stl/block.stl
 Standard library only, so it runs without a virtual environment.
 Exits non-zero if the mesh is not watertight.
 """

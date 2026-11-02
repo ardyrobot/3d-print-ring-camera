@@ -33,7 +33,7 @@
 
 // Fixed measurements shared by all options: width, height, Ring holes, pocket,
 // cable hole, mounting screws. Edit them in mount_common.scad, not here.
-include <mount_common.scad>
+include <../mount_common.scad>
 
 /* [Render] */
 part           = "assembly";  // [assembly, base, shell, washer, fit_test, clash, install]

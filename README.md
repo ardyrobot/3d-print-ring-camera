@@ -6,21 +6,25 @@ holds the wiring, and an 8 mm hole carries the cable in from the back.
 
 Four print options:
 
-1. **Solid block** (primary): one piece, fixed 8°. This section.
-2. **[Adjustable mount](#adjustable-mount-option-2)** (secondary): a camera
+Each option has its own folder: `option1-solid/`, `option2-hinge/`,
+`option3-dovetail/`, `option4-pivot/`. Everything for that option lives in
+it: the model, a print file for each part, the STLs and the preview images.
+
+1. **[Solid block](#option-1-solid-block)** (`option1-solid/`, primary): one piece, fixed 8°.
+2. **[Adjustable hinge](#option-2-adjustable-hinge)** (`option2-hinge/`, secondary): a camera
    shell that pivots over a base, set from 3° to 15° in 2° clicks.
-3. **[Slide mount](#slide-mount-option-3)** (secondary): adjustable 3°–15°
+3. **[Dovetail slide](#option-3-dovetail-slide)** (`option3-dovetail/`, secondary): adjustable 3°–15°
    with **no metal hardware** apart from the two screws into the wall. The
    shell slides on curved dovetail rails and locks with a printed pin.
-4. **[Pivot mount](#pivot-mount-option-4)** (secondary): the base screws on
-   first and has a roof. The shell slides up under it, pivots on an M5 thumb
+4. **[Pivot with roof](#option-4-pivot-with-roof)** (`option4-pivot/`, secondary): the base screws on
+   first and has a roof. The shell slides up under it, pivots on an M5
    screw, and locks with a toothed washer and thumb screw: 3° to 15° in 3°
    clicks.
 
-**[View the model in 3D →](stl/ring_mount.stl)** (GitHub shows STL files in an interactive viewer)
+**[View the solid block in 3D →](option1-solid/stl/block.stl)** (GitHub shows STL files in an interactive viewer)
 
 **Video:** [`docs/video/ring-mount-options.mp4`](docs/video/ring-mount-options.mp4)
-is a 3-minute narrated walkthrough of all four options. The storyboard and
+is a 6-minute narrated walkthrough of all four options: the sketch, how each one installs, turns and holds together. The storyboard and
 script are in [`docs/video/storyboard.md`](docs/video/storyboard.md).
 
 **Animated demo:** [`demo.html`](demo.html) plays the same walkthrough
@@ -39,33 +43,36 @@ serve `.stl` files.
 2. `python tools/video_server.py`, then open
    `http://localhost:8765/demo.html?record` in Edge or Chrome. The page
    renders every frame, encodes the MP4 in the browser and saves it to
-   `docs/video/` (about 4 minutes). If a narration line is longer than its
+   `docs/video/` (about 2 minutes). If a narration line is longer than its
    scene, it stops and says which scene. Lengthen that scene in `demo.html`
    (`S`) and in the storyboard.
 
-| 3D | Camera face | Countersink side | Top |
-|---|---|---|---|
-| ![3D view](docs/preview-3d.png) | ![Camera face](docs/preview-front.png) | ![Side](docs/preview-side.png) | ![Top](docs/preview-top.png) |
-
-Back face (cable entry): [docs/preview-back.png](docs/preview-back.png).
 Original hand sketch: [docs/sketch.webp](docs/sketch.webp).
 
-## Using the model
+## Option 1: solid block
 
-- **Tinkercad:** Import (top right) → choose `stl/ring_mount.stl` → units mm.
+| 3D | Camera face | Countersink side | Top |
+|---|---|---|---|
+| ![3D view](option1-solid/docs/block-3d.png) | ![Camera face](option1-solid/docs/block-front.png) | ![Side](option1-solid/docs/block-side.png) | ![Top](option1-solid/docs/block-top.png) |
+
+Back face (cable entry): [option1-solid/docs/block-back.png](option1-solid/docs/block-back.png).
+
+- **Files:** model `option1-solid/option1_solid.scad` · print file
+  `option1-solid/prints/block.scad` · STL `option1-solid/stl/block.stl`.
+- **Tinkercad:** Import (top right) → choose `option1-solid/stl/block.stl` → units mm.
 - **Slicer:** print lying on the **back face** (flat, 55 × 110). In that
   position the pocket opens upward and no supports should be needed. Not yet
   test-printed.
 - **Material:** for an outdoor mount, PETG or ASA. PLA softens in sun.
   Dremel Eco-ABS: see the material note under the adjustable mount.
 
-## Adjustable mount (option 2)
+## Option 2: adjustable hinge
 
 | 3° | 15° | Angle scale (side) | Fit test |
 |---|---|---|---|
-| ![3 degrees](docs/adjustable-3-top.png) | ![15 degrees](docs/adjustable-15-top.png) | ![Side](docs/adjustable-3-side.png) | ![Fit test](docs/adjustable-fit-test-3d.png) |
+| ![3 degrees](option2-hinge/docs/assembly-3-top.png) | ![15 degrees](option2-hinge/docs/assembly-15-top.png) | ![Side](option2-hinge/docs/assembly-3-side.png) | ![Fit test](option2-hinge/docs/fit-test-3d.png) |
 
-3D: [at 3°](stl/adjustable_assembly_3.stl) · [at 15°](stl/adjustable_assembly_15.stl)
+3D: [at 3°](option2-hinge/stl/assembly_3.stl) · [at 15°](option2-hinge/stl/assembly_15.stl)
 (viewing only; print the parts below).
 
 **How it works.** The **base** screws to the surface exactly like the solid
@@ -84,10 +91,10 @@ base (3, 9, 15, with ticks every 2°).
 
 | STL | Print orientation (as exported) |
 |---|---|
-| `stl/adjustable_fit_test.stl` | **Print this first.** A 16 mm slice through the clamp: base puck, skirt with teeth and slot, washer. Use it to check the slide and the tooth mesh, and tune tolerances, before the full parts. |
-| `stl/adjustable_base.stl` | Standing on its bottom face, so the cylinder prints round. |
-| `stl/adjustable_shell.stl` | Camera face down. |
-| `stl/adjustable_washer.stl` | Flat face down, teeth up. |
+| `option2-hinge/stl/fit_test.stl` | **Print this first.** A 16 mm slice through the clamp: base puck, skirt with teeth and slot, washer. Use it to check the slide and the tooth mesh, and tune tolerances, before the full parts. |
+| `option2-hinge/stl/base.stl` | Standing on its bottom face, so the cylinder prints round. |
+| `option2-hinge/stl/shell.stl` | Camera face down. |
+| `option2-hinge/stl/washer.stl` | Flat face down, teeth up. |
 
 ### Hardware (stainless, A2 or A4)
 
@@ -117,7 +124,7 @@ Bolt lengths are calculated from the model, not yet tested.
 
 ### Print tolerances
 
-All clearances live in one section at the top of `ring_mount_adjustable.scad`
+All clearances live in one section at the top of `option2-hinge/option2_hinge.scad`
 (`/* [Print tolerances] */`). They are starting values for a 0.4 mm nozzle,
 not yet tuned to the DigiLab 3D45:
 
@@ -143,13 +150,13 @@ clamp load, and there is no UV rating. One user review says it is a modified
 PLA rather than ABS. Use **PETG** for the outdoor part (the 3D45 prints it),
 and prefer a light colour, which runs cooler in sun.
 
-## Slide mount (option 3)
+## Option 3: dovetail slide
 
 | 3° | 15° | Underside: lock pin and labels | Fit test |
 |---|---|---|---|
-| ![3 degrees](docs/slide-3-top.png) | ![15 degrees](docs/slide-15-top.png) | ![Underside](docs/slide-3-under.png) | ![Fit test](docs/slide-fit-test-3d.png) |
+| ![3 degrees](option3-dovetail/docs/assembly-3-top.png) | ![15 degrees](option3-dovetail/docs/assembly-15-top.png) | ![Underside](option3-dovetail/docs/assembly-3-under.png) | ![Fit test](option3-dovetail/docs/fit-test-3d.png) |
 
-3D: [at 3°](stl/slide_assembly_3.stl) · [at 15°](stl/slide_assembly_15.stl)
+3D: [at 3°](option3-dovetail/stl/assembly_3.stl) · [at 15°](option3-dovetail/stl/assembly_15.stl)
 (viewing only; print the parts below).
 
 **How it works.** The base's front is a curve around a virtual pivot behind
@@ -166,10 +173,10 @@ a drain.
 
 | STL | Print orientation (as exported) |
 |---|---|
-| `stl/slide_fit_test.stl` | **Print this first.** The bottom 26 mm of base and shell plus a pin: checks the dovetail slide and the pin fit. |
-| `stl/slide_base.stl` | Standing on its bottom face. Rails print without supports (30° flanks). |
-| `stl/slide_shell.stl` | Camera face down. |
-| `stl/slide_pin.stl` | Lying on a small flat, so layers run along the pin (strongest in shear). |
+| `option3-dovetail/stl/fit_test.stl` | **Print this first.** The bottom 26 mm of base and shell plus a pin: checks the dovetail slide and the pin fit. |
+| `option3-dovetail/stl/base.stl` | Standing on its bottom face. Rails print without supports (30° flanks). |
+| `option3-dovetail/stl/shell.stl` | Camera face down. |
+| `option3-dovetail/stl/pin.stl` | Lying on a small flat, so layers run along the pin (strongest in shear). |
 
 **Hardware:** 2 wood screws (about Ø3.5 × 65 mm: the head seats 40 mm into
 the base at `screw_seat_x`, plus about 25 mm into the frame). Nothing else.
@@ -198,13 +205,13 @@ positions aren't fixed; only their size is. The shell is up to 69 mm wide at
 its hole, and a wrong-hole test (shell at 5°, pin in the "3" hole) that must
 be blocked. That second test proves the check can fail.
 
-## Pivot mount (option 4)
+## Option 4: pivot with roof
 
 | 3° | 15° | Underside: slot, washer, screws | Fit test |
 |---|---|---|---|
-| ![3 degrees](docs/pivot-3-top.png) | ![15 degrees](docs/pivot-15-top.png) | ![Underside](docs/pivot-3-under.png) | ![Fit test](docs/pivot-fit-test-3d.png) |
+| ![3 degrees](option4-pivot/docs/assembly-3-top.png) | ![15 degrees](option4-pivot/docs/assembly-15-top.png) | ![Underside](option4-pivot/docs/assembly-3-under.png) | ![Fit test](option4-pivot/docs/fit-test-3d.png) |
 
-3D: [at 3°](stl/pivot_assembly_3.stl) · [at 15°](stl/pivot_assembly_15.stl)
+3D: [at 3°](option4-pivot/stl/assembly_3.stl) · [at 15°](option4-pivot/stl/assembly_15.stl)
 (viewing only; print the parts below).
 
 **How it works.** The **base** screws to the surface first, with nothing in
@@ -230,10 +237,10 @@ on the base (3, 9, 15, with ticks every 3°).
 
 | STL | Print orientation (as exported) |
 |---|---|
-| `stl/pivot_fit_test.stl` | **Print this first.** The bottom 16 mm of the base (both threads), the bottom of the shell (plate, teeth, slot) and a washer. Check that the thumb screws thread in, that the washer seats at each click, and that the skirt slides. |
-| `stl/pivot_base.stl` | Roof down, so the roof is the flat first layer and the threads print vertical. |
-| `stl/pivot_shell.stl` | Camera face down. |
-| `stl/pivot_washer.stl` | Flat face down, teeth up. |
+| `option4-pivot/stl/fit_test.stl` | **Print this first.** The bottom 16 mm of the base (both threads), the bottom of the shell (plate, teeth, slot) and a washer. Check that the thumb screws thread in, that the washer seats at each click, and that the skirt slides. |
+| `option4-pivot/stl/base.stl` | Roof down, so the roof is the flat first layer and the threads print vertical. |
+| `option4-pivot/stl/shell.stl` | Camera face down. |
+| `option4-pivot/stl/washer.stl` | Flat face down, teeth up. |
 
 **Hardware (stainless, A2 or A4):**
 
@@ -284,24 +291,43 @@ images are generated from them. Never edit those by hand.
 
 | File | Owns |
 |---|---|
-| `mount_common.scad` | **Fixed measurements shared by all three options**: envelope, Ring holes (91.5 mm apart), pocket, cable hole, mounting screw size. Change one here and every option follows; the build fails if a model redefines one. Screw *positions* are not fixed, so each model sets its own. |
-| `ring_mount.scad` | Solid block |
-| `ring_mount_adjustable.scad` | Adjustable mount (`part` selects base / shell / washer / fit_test / assembly) |
-| `ring_mount_slide.scad` | Slide mount (`part` selects base / shell / pin / fit_test / assembly) |
-| `ring_mount_pivot.scad` | Pivot mount (`part` selects base / shell / washer / fit_test / assembly) |
+| `mount_common.scad` | **Fixed measurements shared by all four options**: envelope, Ring holes (91.5 mm apart), pocket, cable hole, mounting screw size. Change one here and every option follows; the build fails if a model redefines one. Screw *positions* are not fixed, so each model sets its own. |
+| `option<N>-<name>/option<N>_<name>.scad` | The option's **model**: every design value and print tolerance, at the top of the file. `part` selects what it renders (base / shell / … / assembly / clash). |
+| `option<N>-<name>/prints/<part>.scad` | A **print file** for one STL. It loads the model, picks the part, and is where you change a value **for that one print only** (see below). |
+| `option<N>-<name>/stl/`, `docs/` | Generated: STLs and preview images. Never edit by hand. |
 
-1. Edit a value at the top of the right file. To see it live, open the file
-   in OpenSCAD (Start menu → OpenSCAD (Nightly)) and press F5.
+### Changing one print
+
+Open the part's print file in OpenSCAD, for example
+`option4-pivot/prints/base.scad`. Uncomment a setting, or add any value
+from the option's model file. Press F6, then File → Export → STL. In
+OpenSCAD the last value set wins, so the change only affects that print.
+
+Two rules, enforced by `tools/check_prints.py` at the start of every build:
+
+- A print file can't change a **fixed measurement** from `mount_common.scad`.
+  The build fails.
+- A **print tolerance that two parts share** (for example `gap`, or the tooth
+  clearance) has to match on both parts, so change it in the model file. The
+  build warns if a print file sets one.
+
+### Changing the design
+
+1. Edit a value at the top of the option's model file. To see it live, open
+   the file in OpenSCAD (Start menu → OpenSCAD (Nightly)) and press F5.
 2. Rebuild everything:
 
    ```bash
-   powershell -ExecutionPolicy Bypass -File .\build.ps1
+   powershell -ExecutionPolicy Bypass -File .uild.ps1
    ```
 
-   This exports every STL, renders the `docs/*.png` previews, checks each
-   printable STL's size and that it is closed (watertight), and runs the
-   adjustable mount's collision check at all seven angles. It takes a few
-   minutes.
+   - It checks the print files, then exports every STL from them.
+   - It renders each option's `docs/*.png` previews.
+   - It checks every printable STL's size and that it is closed (watertight).
+   - It runs every option's collision checks, including the tests that must
+     fail.
+
+   It takes a few minutes.
 3. Commit the `.scad`, `.stl` and `.png` changes together.
 
 ### Tools
@@ -318,7 +344,7 @@ has one advantage: the previews show exactly the file that gets printed.
 ## Measurements
 
 **[docs/MEASUREMENTS.md](docs/MEASUREMENTS.md)** lists every measurement for
-both mounts: value, source (written / scaled / chosen / tolerance) and notes,
+all four options: value, source (written / scaled / chosen / tolerance) and notes,
 plus each part's built size. `build.ps1` regenerates it from the `.scad` files
 on every build, so it can't drift from the model. To change a measurement,
 edit the `.scad` file and rebuild; don't edit the table.
@@ -370,7 +396,7 @@ edit the `.scad` file and rebuild; don't edit the table.
       position moves down.
 - [ ] **Test print:** print, fit to the Ring and the mounting surface, then
       record the results here.
-- [ ] **Adjustable: fit test.** Print `adjustable_fit_test.stl` in Eco-ABS,
+- [ ] **Adjustable: fit test.** Print `option2-hinge/stl/fit_test.stl` in Eco-ABS,
       assemble it with an M4 bolt and nut, and check that the skirt slides
       and the washer teeth seat at each click. Tune `/* [Print tolerances] */`
       and record the final values here.
@@ -384,7 +410,7 @@ edit the `.scad` file and rebuild; don't edit the table.
       one M4 bolt carries the load. Its strength is unverified. If the fit test
       or prototype shows weakness: a larger washer, taller teeth, or a second
       clamp bolt. Option 3 avoids this design entirely.
-- [ ] **Slide: fit test.** Print `slide_fit_test.stl` and check the dovetail
+- [ ] **Slide: fit test.** Print `option3-dovetail/stl/fit_test.stl` and check the dovetail
       slide (`dove_clr`) and the pin fit (`pin_free`, `pin_snug`). Tune and
       record the final values here.
 - [ ] **Slide: plastic around the screws.** 8.5 mm of plastic behind each
@@ -406,7 +432,7 @@ edit the `.scad` file and rebuild; don't edit the table.
       water that gets in. At steep angles there is a gap of up to about 4 mm
       between the shell's deep edge and the mounting surface. Check on site
       whether rain gets in there.
-- [ ] **Pivot: fit test.** Print `pivot_fit_test.stl` and check:
+- [ ] **Pivot: fit test.** Print `option4-pivot/stl/fit_test.stl` and check:
       - The M5 thumb screws thread in by hand (`thread_clr`). The 0.8 mm
         pitch is near the limit of a 0.4 mm nozzle. If the threads don't
         work, run an M5 tap through, or let the stainless screw cut its own
@@ -446,21 +472,29 @@ edit the `.scad` file and rebuild; don't edit the table.
 ## Repo layout
 
 ```
-mount_common.scad             fixed measurements shared by all options
-ring_mount.scad               solid block (edit this)
-ring_mount_adjustable.scad    adjustable mount (edit this)
-ring_mount_slide.scad         slide mount, option 3 (edit this)
-ring_mount_pivot.scad         pivot mount, option 4 (edit this)
-build.ps1                     rebuild all STLs + previews + checks
-stl/ring_mount.stl            generated: solid block
-stl/adjustable_*.stl          generated: base, shell, washer, fit test, assemblies
-stl/slide_*.stl               generated: option 3 parts and assemblies
-stl/pivot_*.stl               generated: option 4 parts and assemblies
-docs/preview-*.png            generated: solid block views
-docs/adjustable-*.png         generated: adjustable mount views
-docs/slide-*.png, pivot-*.png generated: option 3 and 4 views
-docs/sketch.webp       original hand sketch
-tools/check_stl.py     STL size / volume / watertight check
-tools/render_stl.py    STL → PNG preview renderer
-tools/param_table.py   .scad parameters + STL sizes → docs/MEASUREMENTS.md
+mount_common.scad              fixed measurements shared by all four options
+option1-solid/
+  option1_solid.scad           model (edit this)
+  prints/block.scad            print file for the STL
+  stl/block.stl                generated
+  docs/block-*.png             generated previews
+option2-hinge/                 same pattern: option2_hinge.scad, prints/, stl/, docs/
+  prints/  base, shell, washer, fit_test
+option3-dovetail/              option3_dovetail.scad, prints/, stl/, docs/
+  prints/  base, shell, pin, fit_test
+option4-pivot/                 option4_pivot.scad, prints/, stl/, docs/
+  prints/  base, shell, washer, fit_test
+  (stl/ also holds assembly_3 and assembly_15, for viewing only)
+build.ps1                      rebuild all STLs + previews + checks
+demo.html                      interactive animated demo (loads the STLs)
+docs/sketch.webp               original hand sketch
+docs/MEASUREMENTS.md           generated: every value, every option
+docs/video/                    narrated video, storyboard, narration timing
+tools/check_prints.py          print-file rules (fixed values, part names)
+tools/check_stl.py             STL size / volume / watertight check
+tools/render_stl.py            STL → PNG preview renderer
+tools/param_table.py           .scad parameters + STL sizes → docs/MEASUREMENTS.md
+tools/make_narration.py        storyboard narration → WAV (Windows voice)
+tools/video_server.py, record_video.js   record demo.html to MP4
+tools/pack_demo.py             STLs → one JS file, for publishing demo.html
 ```

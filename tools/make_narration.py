@@ -1,7 +1,7 @@
 """Speak the video narration from docs/video/storyboard.md into WAV files.
 
 Usage: python tools/make_narration.py [voice]
-Default voice: "Microsoft Zira Desktop". List the installed voices with:
+Default voice: "Microsoft David Desktop" (male; chosen by Cat). List the installed voices with:
   powershell -c "Add-Type -A System.Speech; (New-Object System.Speech.Synthesis.SpeechSynthesizer).GetInstalledVoices().VoiceInfo.Name"
 
 The storyboard's table is the single owner of the narration text: this script
@@ -47,7 +47,7 @@ def narration_lines():
 
 
 def main():
-    voice = sys.argv[1] if len(sys.argv) > 1 else "Microsoft Zira Desktop"
+    voice = sys.argv[1] if len(sys.argv) > 1 else "Microsoft David Desktop"
     os.makedirs(OUT, exist_ok=True)
     timing = {"voice": voice, "scenes": []}
     for n, text in narration_lines():

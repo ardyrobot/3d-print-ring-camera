@@ -12,10 +12,10 @@ import os
 import sys
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-STLS = ["stl/ring_mount.stl",
-        "stl/adjustable_base.stl", "stl/adjustable_shell.stl", "stl/adjustable_washer.stl",
-        "stl/slide_base.stl", "stl/slide_shell.stl",
-        "stl/pivot_base.stl", "stl/pivot_shell.stl", "stl/pivot_washer.stl"]
+STLS = ["option1-solid/stl/block.stl",
+        "option2-hinge/stl/base.stl", "option2-hinge/stl/shell.stl", "option2-hinge/stl/washer.stl",
+        "option3-dovetail/stl/base.stl", "option3-dovetail/stl/shell.stl",
+        "option4-pivot/stl/base.stl", "option4-pivot/stl/shell.stl", "option4-pivot/stl/washer.stl"]
 
 
 def main(out):

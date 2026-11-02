@@ -17,7 +17,7 @@
 
 // Fixed measurements shared by all options: width, height, Ring holes, pocket,
 // cable hole, mounting screws. Edit them in mount_common.scad, not here.
-include <mount_common.scad>
+include <../mount_common.scad>
 
 /* [Block] */
 depth_deep  = 46;     // [scaled]  depth at the deep (mounting) side

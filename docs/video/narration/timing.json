@@ -1,70 +1,70 @@
 {
-  "voice": "Microsoft Zira Desktop",
+  "voice": "Microsoft David Desktop",
   "scenes": [
     {
       "scene": 1,
       "file": "scene-1.wav",
-      "seconds": 18.62
+      "seconds": 19.09
     },
     {
       "scene": 2,
       "file": "scene-2.wav",
-      "seconds": 10.66
+      "seconds": 11.08
     },
     {
       "scene": 3,
       "file": "scene-3.wav",
-      "seconds": 13.51
+      "seconds": 30.08
     },
     {
       "scene": 4,
       "file": "scene-4.wav",
-      "seconds": 12.54
+      "seconds": 12.81
     },
     {
       "scene": 5,
       "file": "scene-5.wav",
-      "seconds": 18.89
+      "seconds": 19.1
     },
     {
       "scene": 6,
       "file": "scene-6.wav",
-      "seconds": 17.67
+      "seconds": 22.45
     },
     {
       "scene": 7,
       "file": "scene-7.wav",
-      "seconds": 18.87
+      "seconds": 19.33
     },
     {
       "scene": 8,
       "file": "scene-8.wav",
-      "seconds": 21.74
+      "seconds": 22.18
     },
     {
       "scene": 9,
       "file": "scene-9.wav",
-      "seconds": 19.22
+      "seconds": 19.37
     },
     {
       "scene": 10,
       "file": "scene-10.wav",
-      "seconds": 26.5
+      "seconds": 28.82
     },
     {
       "scene": 11,
       "file": "scene-11.wav",
-      "seconds": 13.17
+      "seconds": 13.3
     },
     {
       "scene": 12,
       "file": "scene-12.wav",
-      "seconds": 8.98
+      "seconds": 9.39
     },
     {
       "scene": 13,
       "file": "scene-13.wav",
-      "seconds": 7.51
+      "seconds": 7.62
     }
   ]
 }
