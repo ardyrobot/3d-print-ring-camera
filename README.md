@@ -240,6 +240,10 @@ on the base (3, 9, 15, with ticks every 3°).
 - 1× M5 × 20 socket-head cap screw (ISO 4762, 8.5 mm head): pivot
 - 1× M5 × 20 knurled thumb screw: lock. The model allows a head up to
   16 mm (`lock_head_d`); check the one you buy.
+- Buy both M5 screws **with a nylon locking patch** (chosen by Cat): a
+  pre-applied strip of nylon on the thread that resists vibration loosening.
+  They still turn by hand or with a hex key, and the model doesn't change.
+  Don't use liquid threadlocker: it's likely to crack ABS and PETG.
 - 2× #8 flat (bevel) head wood screws, about 75 mm (3 in) long. The head
   seats 49 mm into the base (`screw_seat_x`), in an 82° countersink.
 
@@ -419,6 +423,14 @@ edit the `.scad` file and rebuild; don't edit the table.
 - [ ] **Pivot: thin edge by the track.** The washer track comes within
       about 1.7 mm of the bottom plate's edge (calculated). It's only a
       2 mm-deep recess, but check that edge on the print. *Gate: fit test.*
+- [ ] **Pivot: locking patch wear.** A nylon patch grips less each time
+      the screw is undone. Industry figures are around five reuses, as I
+      recall them; that's not looked up. The lock screw is turned at every
+      adjustment, so its grip will fade sooner than the pivot's. Check it on
+      the prototype after several adjustments. If it loosens, replace the
+      screw, or add a stainless wave washer under its head. That needs about
+      1 mm more room under the head, then a clash re-check.
+      *Gate: prototype.*
 - [ ] **Pivot: roof edge.** At 15° a sliver (about 1.3 mm) of the camera
       plate's top edge at the deep corner sticks out past the roof. The roof
       can't cover it there without sticking out in front of the face at 3°.

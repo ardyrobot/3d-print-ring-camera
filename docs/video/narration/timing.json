@@ -4,12 +4,12 @@
     {
       "scene": 1,
       "file": "scene-1.wav",
-      "seconds": 6.75
+      "seconds": 18.62
     },
     {
       "scene": 2,
       "file": "scene-2.wav",
-      "seconds": 13.29
+      "seconds": 10.66
     },
     {
       "scene": 3,
@@ -19,31 +19,51 @@
     {
       "scene": 4,
       "file": "scene-4.wav",
-      "seconds": 18.75
+      "seconds": 12.54
     },
     {
       "scene": 5,
       "file": "scene-5.wav",
-      "seconds": 16.85
+      "seconds": 18.89
     },
     {
       "scene": 6,
       "file": "scene-6.wav",
-      "seconds": 22.7
+      "seconds": 17.67
     },
     {
       "scene": 7,
       "file": "scene-7.wav",
-      "seconds": 10.04
+      "seconds": 18.87
     },
     {
       "scene": 8,
       "file": "scene-8.wav",
-      "seconds": 7.85
+      "seconds": 21.74
     },
     {
       "scene": 9,
       "file": "scene-9.wav",
+      "seconds": 19.22
+    },
+    {
+      "scene": 10,
+      "file": "scene-10.wav",
+      "seconds": 26.5
+    },
+    {
+      "scene": 11,
+      "file": "scene-11.wav",
+      "seconds": 13.17
+    },
+    {
+      "scene": 12,
+      "file": "scene-12.wav",
+      "seconds": 8.98
+    },
+    {
+      "scene": 13,
+      "file": "scene-13.wav",
       "seconds": 7.51
     }
   ]

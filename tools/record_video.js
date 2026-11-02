@@ -30,7 +30,8 @@
     if (snap !== null) {
       const comp = document.createElement('canvas'); comp.width = W; comp.height = H;
       const ctx = comp.getContext('2d'), t = parseFloat(snap), st = render(t);
-      backdrop(ctx, st); ctx.drawImage(renderer.domElement, 0, 0, W, H); overlay(ctx, st, t);
+      backdrop(ctx, st); ctx.drawImage(renderer.domElement, 0, 0, W, H);
+      window.DEMO.drawSketch(ctx, W, H, st.sketch); overlay(ctx, st, t);
       comp.style.cssText = 'position:fixed;inset:0;width:100vw;height:auto;z-index:8';
       document.body.appendChild(comp);
       status(`snap t=${t}`);
@@ -56,9 +57,9 @@
     const acfg = (await AudioEncoder.isConfigSupported(aac)).supported ? aac : opus;
     let vcfg = null;
     for (const codec of ['avc1.640028', 'avc1.4d0028', 'avc1.42002a']) {
-      // 2 Mbit/s keeps the 3-minute file near 50 MB (GitHub rejects files over
+      // 1.6 Mbit/s keeps the 6-minute file near 75 MB (GitHub rejects files over
       // 100 MB); the scenes are mostly still surfaces, so it stays sharp
-      const c = { codec, width: W, height: H, bitrate: 2e6, framerate: FPS };
+      const c = { codec, width: W, height: H, bitrate: 1.6e6, framerate: FPS };
       if ((await VideoEncoder.isConfigSupported(c)).supported) { vcfg = c; break; }
     }
     if (!vcfg) throw new Error('no H.264 encoder in this browser');
@@ -88,6 +89,7 @@
       const st = render(t);
       backdrop(ctx, st);
       ctx.drawImage(renderer.domElement, 0, 0, W, H);
+      window.DEMO.drawSketch(ctx, W, H, st.sketch);
       overlay(ctx, st, t);
       const vf = new VideoFrame(comp, { timestamp: Math.round(f * 1e6 / FPS), duration: Math.round(1e6 / FPS) });
       ve.encode(vf, { keyFrame: f % (FPS * 2) === 0 });
@@ -165,18 +167,19 @@
       });
       c.restore();
     }
-    // end card, centred
+    // end card, right of the sketch (which sits on the left)
     if (st.endCard > 0.01) {
+      const cx = W * 0.69;
       c.save(); c.globalAlpha = st.endCard; c.textAlign = 'center';
-      c.fillStyle = 'rgba(243,244,245,0.55)'; c.fillRect(0, 0, W, H);
+      c.fillStyle = 'rgba(243,244,245,0.6)'; rrect(c, W * 0.42, H * 0.24, W * 0.54, H * 0.5, 16 * S); c.fill();
       c.font = `500 ${12 * S}px "IBM Plex Mono", Consolas, monospace`;
       const pill = 'Built from code · OpenSCAD + Python', pw = c.measureText(pill).width + 20 * S;
-      c.fillStyle = '#d8ecee'; rrect(c, W / 2 - pw / 2, H * 0.32, pw, 24 * S, 12 * S); c.fill();
-      c.fillStyle = '#1f6f78'; c.fillText(pill, W / 2, H * 0.32 + 16.5 * S);
+      c.fillStyle = '#d8ecee'; rrect(c, cx - pw / 2, H * 0.32, pw, 24 * S, 12 * S); c.fill();
+      c.fillStyle = '#1f6f78'; c.fillText(pill, cx, H * 0.32 + 16.5 * S);
       c.fillStyle = '#1f2428'; c.font = `700 ${56 * S}px "Familjen Grotesk", Arial, sans-serif`;
-      c.fillText('One drawing.', W / 2, H * 0.32 + 90 * S); c.fillText('Four mounts.', W / 2, H * 0.32 + 148 * S);
+      c.fillText('One drawing.', cx, H * 0.32 + 90 * S); c.fillText('Four mounts.', cx, H * 0.32 + 148 * S);
       c.fillStyle = '#5a656d'; c.font = `400 ${17 * S}px "IBM Plex Sans", "Segoe UI", sans-serif`;
-      c.fillText('github.com/ardyrobot/3d-print-ring-camera', W / 2, H * 0.32 + 185 * S);
+      c.fillText('github.com/ardyrobot/3d-print-ring-camera', cx, H * 0.32 + 185 * S);
       c.restore();
     }
   }

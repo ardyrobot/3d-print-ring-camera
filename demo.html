@@ -118,12 +118,13 @@ code { font-family: var(--mono); font-size: 0.92em; }
 
   <div class="stage" id="stage" aria-label="Animated demonstration of the four mounts">
     <canvas id="gl"></canvas>
+    <canvas id="sk2d" style="pointer-events:none"></canvas>
     <div class="title-card" id="titleCard">
-      <span class="pill">4 minute demo</span>
+      <span class="pill">6 minute demo</span>
       <h2>One drawing.<br>Four mounts.</h2>
       <p>Press Play, or pick a chapter below.</p>
     </div>
-    <div class="title-card" id="endCard" style="opacity:0">
+    <div class="title-card" id="endCard" style="opacity:0;left:38%">
       <span class="pill">Built from code · OpenSCAD + Python</span>
       <h2>One drawing.<br>Four mounts.</h2>
       <p>github.com/ardyrobot/3d-print-ring-camera</p>
@@ -144,8 +145,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
 
   <div class="controls">
     <button class="btn" id="play" type="button">Play</button>
-    <input type="range" id="scrub" min="0" max="230" step="0.1" value="0" aria-label="Timeline">
-    <span class="time" id="time">0:00 / 3:50</span>
+    <input type="range" id="scrub" min="0" max="372" step="0.1" value="0" aria-label="Timeline">
+    <span class="time" id="time">0:00 / 6:12</span>
   </div>
   <div class="chips" id="chips"></div>
 
@@ -179,6 +180,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
   const FACE_FRONT = 15;                   // options 2 and 4: hinge axis to camera face (shell frame)
   const CLAMP_Z = 70, CLAMP_A = -10;       // option 2 clamp bolt height and direction
   const WASHER_FACE = 53.7666;             // option 2: R_out + washer_t
+  const CLAMP_NUT_R = 38;                  // option 2: clamp nut distance from the hinge axis
+  const HINGE_NUT_Z = [12.4, 97.6];        // option 2: base_z0 + hinge_nut_in, base_z1 - hinge_nut_in
   const SOLID_FACE_ANGLE = 8;
   const SP = [26, -20], SLIDE_FACE = 62.4; // option 3: virtual pivot, face distance (shell frame)
   // option 3 lock holes: [angle, radius, shell angle] (pin_rows in ring_mount_slide.scad)
@@ -195,6 +198,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
   const seg = (u, a, b) => ease((u - a) / (b - a));       // eased 0..1 over [a,b]
   const lerp = (a, b, t) => a + (b - a) * t;
   const bump = (u, c, w) => Math.max(0, 1 - Math.abs(u - c) / w);   // 0..1..0 spike at c
+  const win = (u, a, b, f = 0.03) => seg(u, a, a + f) * (1 - seg(u, b - f, b));   // on over [a, b]
   const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
   const RECORD = new URLSearchParams(location.search).has('record');
 
@@ -259,8 +263,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
     lens: mat(0x0d0f10, 0.2),
     cone: new THREE.MeshBasicMaterial({ color: 0x1f6f78, transparent: true, opacity: 0.14, depthWrite: false, side: THREE.DoubleSide }),
   };
-  const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1000);   // X-ray: keeps model z <= constant
-  const cutPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1e4);     // cutaway: keeps model y <= constant
+  const clipPlane = new THREE.Plane(new THREE.Vector3(0, -1, 0), 1000);   // section: keeps model z <= constant
+  const cutPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 1e4);     // cutaway: vertical plane, set per scene
 
   // ---------- STL loading ----------
   // Published copies can't serve .stl, so they ship demo_models.js (made by
@@ -300,8 +304,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
     return g;
   }
 
-  // Printed part: mesh + edge lines. Every part can glow (emissive), which the
-  // timeline uses to point at the part being described.
+  // Printed part: mesh + edge lines. Every part can glow (emissive) and fade
+  // (ghost), which the timeline uses to point at the part being described.
   const GLOW = [];
   function part(geom, material, planes = null) {
     const g = new THREE.Group();
@@ -312,10 +316,14 @@ code { font-family: var(--mono); font-size: 0.92em; }
     const edges = new THREE.LineSegments(new THREE.EdgesGeometry(geom, 28),
       new THREE.LineBasicMaterial({ color: 0x1f2428, transparent: true, opacity: 0.35, clippingPlanes: planes }));
     g.add(mesh, edges);
-    g.mesh = mesh; GLOW.push(mesh);
+    g.mesh = mesh; g.edges = edges; GLOW.push(g);
     return g;
   }
   function glow(p, hex, k) { if (k > 0) p.mesh.material.emissive.set(hex).multiplyScalar(0.55 * k); }
+  function ghost(p, k) {                                  // k = 1 solid, lower = see-through
+    const m = p.mesh.material; m.transparent = k < 1; m.opacity = k; m.depthWrite = k >= 1;
+    p.edges.material.opacity = 0.35 * Math.max(k, 0.4);
+  }
 
   function cyl(r, h, material, segs = 24) {   // along model +Z from 0 to h
     const geo = new THREE.CylinderGeometry(r, r, h, segs);
@@ -329,6 +337,10 @@ code { font-family: var(--mono); font-size: 0.92em; }
     const head = cyl(headR, headH, MAT.steel, 6);
     g.add(shank, head);
     return g;
+  }
+  function nut() {                                       // M4 hex nut, axis along model z, centred
+    const n = cyl(3.9, 3.2, MAT.steel, 6); n.position.z = -1.6;
+    const g = new THREE.Group(); g.add(n); return g;
   }
 
   function upScrew(len, headD, headH, segs) {           // head below z=0, shank up +z
@@ -363,20 +375,20 @@ code { font-family: var(--mono); font-size: 0.92em; }
 
   // Text in the 3D scene. Labels draw on top of everything (no depth test).
   function label(title, detail = '', color = '#1f2428', h = 10) {
-    const c = document.createElement('canvas'); c.width = 768; c.height = detail ? 200 : 128;
+    const c = document.createElement('canvas'); c.width = 900; c.height = detail ? 200 : 128;
     const x = c.getContext('2d');
     x.textAlign = 'center'; x.textBaseline = 'middle';
     if (detail) {
-      x.fillStyle = 'rgba(255,255,255,0.86)';
-      x.beginPath(); x.roundRect ? x.roundRect(24, 12, 720, 176, 28) : x.rect(24, 12, 720, 176); x.fill();
+      x.fillStyle = 'rgba(255,255,255,0.9)';
+      x.beginPath(); x.roundRect ? x.roundRect(20, 12, 860, 176, 28) : x.rect(20, 12, 860, 176); x.fill();
     }
     x.font = '700 70px "Familjen Grotesk", Arial, sans-serif'; x.fillStyle = color;
-    x.fillText(title, 384, detail ? 72 : 66);
-    if (detail) { x.font = '500 48px "IBM Plex Sans", "Segoe UI", sans-serif'; x.fillStyle = '#5a656d'; x.fillText(detail, 384, 144); }
+    x.fillText(title, 450, detail ? 72 : 66);
+    if (detail) { x.font = '500 48px "IBM Plex Sans", "Segoe UI", sans-serif'; x.fillStyle = '#4a555d'; x.fillText(detail, 450, 144); }
     const tex = new THREE.CanvasTexture(c); tex.encoding = THREE.sRGBEncoding;
     const s = new THREE.Sprite(new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false, depthWrite: false }));
     s.renderOrder = 10;
-    s.scale.set(h * 768 / c.height, h, 1);
+    s.scale.set(h * 900 / c.height, h, 1);
     return s;
   }
   function dim(a, b, text, at) {                          // dimension line a-b with a label at `at`
@@ -391,15 +403,147 @@ code { font-family: var(--mono); font-size: 0.92em; }
   // Parts that move in exploded views remember where they belong
   const HOMES = [], LABELS = [];
   const home = (o) => { o.userData.home = o.position.clone(); HOMES.push(o); return o; };
-  function tag(parent, title, detail, at, color) {
-    const l = label(title, detail, color, 14); l.position.set(...at); parent.add(l); LABELS.push(l); return l;
+  function tag(parent, title, detail, at, color, h = 14) {
+    const l = label(title, detail, color, h); l.position.set(...at); parent.add(l); LABELS.push(l); return l;
   }
   const off = (o, e, x, y, z) => o.position.set(o.userData.home.x + x * e, o.userData.home.y + y * e, o.userData.home.z + z * e);
+  const showTags = (list, k) => list.forEach((l) => { l.visible = k > 0.01; l.material.opacity = k; });
+  const tagsOf = (p) => p.children.filter((c) => LABELS.includes(c));
+
+  // ---------- overhead angle view: flat ribbons drawn just above the parts ----------
+  const OVER_Z = 116;
+  function ribbonGeo(pts, w) {                            // flat strip through 2D model points
+    const v = [];
+    for (let i = 0; i < pts.length - 1; i++) {
+      const [x0, y0] = pts[i], [x1, y1] = pts[i + 1];
+      const L = Math.hypot(x1 - x0, y1 - y0) || 1, nx = -(y1 - y0) / L * w / 2, ny = (x1 - x0) / L * w / 2;
+      v.push(x0 + nx, y0 + ny, OVER_Z, x0 - nx, y0 - ny, OVER_Z, x1 + nx, y1 + ny, OVER_Z,
+             x1 + nx, y1 + ny, OVER_Z, x0 - nx, y0 - ny, OVER_Z, x1 - nx, y1 - ny, OVER_Z);
+    }
+    const g = new THREE.BufferGeometry(); g.setAttribute('position', new THREE.Float32BufferAttribute(v, 3)); return g;
+  }
+  function dashes(a, b, dash = 3, gap = 2.5) {           // dashed segment as a list of short segments
+    const L = Math.hypot(b[0] - a[0], b[1] - a[1]), out = [];
+    for (let s = 0; s < L; s += dash + gap) {
+      const e = Math.min(L, s + dash);
+      out.push([[a[0] + (b[0] - a[0]) * s / L, a[1] + (b[1] - a[1]) * s / L], [a[0] + (b[0] - a[0]) * e / L, a[1] + (b[1] - a[1]) * e / L]]);
+    }
+    return out;
+  }
+  const arcPts = (c, r, a0, a1, n = 40) => Array.from({ length: n + 1 }, (_, i) => {
+    const a = (a0 + (a1 - a0) * i / n) * D2R; return [c[0] + r * Math.cos(a), c[1] + r * Math.sin(a)];
+  });
+  const flatMat = (hex, o = 1) => new THREE.MeshBasicMaterial({ color: hex, transparent: true, opacity: o, depthTest: false, side: THREE.DoubleSide });
+  const AV = { group: new THREE.Group(), dyn: [] };
+  AV.group.renderOrder = 9;
+  // option geometry for the view: pivot, face centre and half-width in the shell frame
+  const AVOPT = {
+    2: { pivot: [HX, HY], fc: [21, 15], half: 27.5 },
+    3: { pivot: SP, fc: [0, SLIDE_FACE], half: 27.5 },
+    4: { pivot: [HX, HY], fc: [21, 15], half: 27.5 },
+  };
+  const toWorld = (o, p, a) => {                          // shell frame -> world at angle a (clockwise)
+    const c = Math.cos(a * D2R), s = Math.sin(a * D2R);
+    return [o.pivot[0] + p[0] * c + p[1] * s, o.pivot[1] - p[0] * s + p[1] * c];
+  };
+  function addFlat(geo, m) { const mesh = new THREE.Mesh(geo, m); mesh.renderOrder = 9; AV.group.add(mesh); return mesh; }
+  function angleView(opt, a, k, accent) {                 // rebuild the overlay for option opt at angle a
+    for (const m of AV.dyn) { m.geometry.dispose(); m.material.dispose(); AV.group.remove(m); }
+    AV.dyn = [];
+    AV.group.visible = k > 0.01;
+    if (!AV.group.visible) return;
+    const o = AVOPT[opt], acc = new THREE.Color(accent);
+    const add = (geo, m) => { const mesh = addFlat(geo, m); AV.dyn.push(mesh); m.opacity *= k; return mesh; };
+    // wall and mounting surface
+    add(ribbonGeo([[-6, 0], [95, 0]], 2.4), flatMat(0x5a656d));
+    add(ribbonGeo([[0, -28], [0, 95]], 2.4), flatMat(0x5a656d));
+    // ghost faces at both ends of the range
+    for (const g of [3, 15]) add(ribbonGeo([toWorld(o, [o.fc[0] - o.half, o.fc[1]], g), toWorld(o, [o.fc[0] + o.half, o.fc[1]], g)], 1.2), flatMat(acc, 0.35));
+    // current face, straight-out reference, look arrow, arc
+    const c = toWorld(o, o.fc, a), n = [Math.sin(a * D2R), Math.cos(a * D2R)];
+    add(ribbonGeo([toWorld(o, [o.fc[0] - o.half, o.fc[1]], a), toWorld(o, [o.fc[0] + o.half, o.fc[1]], a)], 2.2), flatMat(acc));
+    for (const d of dashes(c, [c[0], c[1] + 52])) add(ribbonGeo(d, 1.4), flatMat(0x1f2428, 0.8));
+    const tip = [c[0] + 52 * n[0], c[1] + 52 * n[1]];
+    add(ribbonGeo([c, tip], 2.4), flatMat(0x0f9d58));
+    const back = [-n[0], -n[1]], side = [n[1], -n[0]];
+    add(ribbonGeo([[tip[0] + 6 * back[0] + 3.5 * side[0], tip[1] + 6 * back[1] + 3.5 * side[1]], tip,
+                   [tip[0] + 6 * back[0] - 3.5 * side[0], tip[1] + 6 * back[1] - 3.5 * side[1]]], 2.4), flatMat(0x0f9d58));
+    if (a > 0.3) add(ribbonGeo(arcPts(c, 34, 90 - a, 90), 2), flatMat(0x0f9d58));
+    // pivot: a dot; option 3's sits behind the wall, with the curve the face rides on
+    add(new THREE.CircleGeometry(2.6, 24).translate(o.pivot[0], o.pivot[1], OVER_Z), flatMat(acc));
+    if (opt === 3) for (let t = 70; t < 112; t += 3) add(ribbonGeo(arcPts(o.pivot, SLIDE_FACE, t, t + 1.6, 3), 0.9), flatMat(acc, 0.7));
+    AV.label.visible = true; AV.label.material.opacity = k;
+    AV.label.position.set(c[0] + 40 * Math.sin((a / 2) * D2R) + 9, c[1] + 40 * Math.cos((a / 2) * D2R) + 2, OVER_Z);
+    if (AV.labelText !== Math.round(a)) {                 // redraw the number only when it changes
+      AV.labelText = Math.round(a);
+      const x = AV.labelCanvas.getContext('2d'); x.clearRect(0, 0, 256, 128);
+      x.font = '700 92px "IBM Plex Mono", Consolas, monospace'; x.fillStyle = '#0b7a43'; x.textAlign = 'center'; x.textBaseline = 'middle';
+      x.fillText(AV.labelText + '°', 128, 66); AV.label.material.map.needsUpdate = true;
+    }
+  }
+
+  // ---------- the sketch (2D overlay, drawn by both the page and the recorder) ----------
+  const SKETCH = new Image(); SKETCH.src = 'docs/sketch.webp';
+  // callouts on the 1454 x 2000 sketch, as fractions of its width and height
+  const SK_RECT = {
+    size:   [[0.68, 0.413, 0.765, 0.447], [0.865, 0.197, 0.95, 0.228]],
+    holes:  [[0.712, 0.052, 0.752, 0.084], [0.708, 0.362, 0.748, 0.392], [0.672, 0.133, 0.758, 0.157]],
+    pocket: [[0.645, 0.196, 0.817, 0.312]],
+    cable:  [[0.748, 0.268, 0.8, 0.307], [0.185, 0.258, 0.328, 0.296]],
+    angle:  [[0.3, 0.715, 0.455, 0.765]],
+  };
+  const SK_VIEW = {                                       // [centre x, centre y, visible height] in sketch fractions
+    full: [0.5, 0.38, 0.8], size: [0.76, 0.225, 0.5], holes: [0.73, 0.22, 0.42],
+    pocket: [0.71, 0.255, 0.3], cable: [0.5, 0.282, 0.3], angle: [0.34, 0.68, 0.34],
+  };
+  function drawSketch(c, w, h, sk) {
+    if (!sk || sk.alpha < 0.01 || !SKETCH.complete) return;
+    const iw = SKETCH.naturalWidth, ih = SKETCH.naturalHeight, lw = Math.max(2, w / 480);
+    c.save(); c.globalAlpha = sk.alpha;
+    const hilite = (map) => {                             // amber boxes round the callouts being named
+      c.lineWidth = lw * 1.5;
+      for (const [key, k] of Object.entries(sk.hi || {})) {
+        if (k < 0.01) continue;
+        c.strokeStyle = `rgba(224,154,45,${k})`; c.fillStyle = `rgba(224,154,45,${0.12 * k})`;
+        for (const r of SK_RECT[key]) { const [x0, y0] = map(r[0], r[1]), [x1, y1] = map(r[2], r[3]); c.fillRect(x0 - lw * 3, y0 - lw * 3, x1 - x0 + lw * 6, y1 - y0 + lw * 6); c.strokeRect(x0 - lw * 3, y0 - lw * 3, x1 - x0 + lw * 6, y1 - y0 + lw * 6); }
+      }
+    };
+    if (sk.mode === 'full') {
+      c.fillStyle = '#fbfaf6'; c.fillRect(0, 0, w, h);
+      const [cx, cy, vh] = sk.view, s = h / (vh * ih);
+      const dx = w / 2 - cx * iw * s, dy = h / 2 - cy * ih * s;
+      c.drawImage(SKETCH, dx, dy, iw * s, ih * s);
+      hilite((fx, fy) => [dx + fx * iw * s, dy + fy * ih * s]);
+    } else {
+      // inset (front view only) in the top right, or the whole page on the left
+      const r = sk.mode === 'inset' ? [0.565, 0, 0.965, 0.46] : [0.03, 0, 0.97, 0.79];
+      const sw = (r[2] - r[0]) * iw, sh = (r[3] - r[1]) * ih;
+      const bh = sk.mode === 'inset' ? h * 0.42 : h * 0.84, bw = bh * sw / sh;
+      const bx = sk.mode === 'inset' ? w * 0.97 - bw : w * 0.05, by = sk.mode === 'inset' ? h * 0.05 : h * 0.08;
+      c.fillStyle = '#fbfaf6'; c.strokeStyle = 'rgba(31,36,40,0.25)'; c.lineWidth = lw;
+      c.fillRect(bx - lw * 4, by - lw * 4, bw + lw * 8, bh + lw * 8); c.strokeRect(bx - lw * 4, by - lw * 4, bw + lw * 8, bh + lw * 8);
+      c.drawImage(SKETCH, r[0] * iw, r[1] * ih, sw, sh, bx, by, bw, bh);
+      hilite((fx, fy) => [bx + (fx - r[0]) * iw * bw / sw, by + (fy - r[1]) * ih * bh / sh]);
+    }
+    c.restore();
+  }
+  function sketchTour(u) {                                // scene 1: zoom from callout to callout
+    const keys = [[0, 'full'], [0.07, 'size'], [0.34, 'holes'], [0.49, 'pocket'], [0.6, 'cable'], [0.7, 'angle'], [0.9, 'full']];
+    let i = 0; while (i < keys.length - 1 && u >= keys[i + 1][0]) i++;
+    const [u0, k0] = keys[i], next = keys[Math.min(i + 1, keys.length - 1)];
+    const t = i === keys.length - 1 ? 0 : seg(u, u0, u0 + 0.05);
+    const prev = SK_VIEW[i > 0 ? keys[i - 1][1] : k0], cur = SK_VIEW[k0];
+    const view = cur.map((v, j) => lerp(prev[j], v, i > 0 ? seg(u, u0, u0 + 0.05) : 1));
+    return { mode: 'full', view, alpha: 1 - seg(u, 0.95, 1),
+             hi: { size: win(u, 0.09, 0.33), holes: win(u, 0.36, 0.49), pocket: win(u, 0.51, 0.6),
+                   cable: win(u, 0.62, 0.7), angle: win(u, 0.72, 0.9) } };
+  }
 
   // ---------- scene objects (filled after loading) ----------
   const O = {};
   async function build() {
     await document.fonts.ready;
+    await SKETCH.decode().catch(() => {});
     // Sequential so the packed-file fallback loads once
     const G = {};
     for (const n of ['ring_mount', 'adjustable_base', 'adjustable_shell', 'adjustable_washer',
@@ -412,17 +556,6 @@ code { font-family: var(--mono); font-size: 0.92em; }
     G.pivot_base.rotateX(Math.PI); G.pivot_base.translate(0, 0, 110);                              // roof-down -> upright
     G.pivot_shell.translate(0, 0, -FACE_FRONT); G.pivot_shell.rotateX(Math.PI / 2);                // -> shell frame
     G.pivot_washer.translate(...LOCK);                                                             // -> world
-
-    // Sketch on the desk, rotated so it reads from the front
-    const tex = new THREE.TextureLoader().load('docs/sketch.webp');
-    tex.encoding = THREE.sRGBEncoding;
-    tex.anisotropy = 4;
-    O.paper = new THREE.Mesh(new THREE.PlaneGeometry(210, 289),
-      new THREE.MeshStandardMaterial({ map: tex, color: 0xb9bbbd, roughness: 0.95, transparent: true }));
-    O.paper.position.set(27.5, 40, 0.3);
-    O.paper.rotation.z = Math.PI;
-    O.paper.receiveShadow = true;
-    world.add(O.paper);
 
     // Option 1: one printed part (camera-holding, so shell colour)
     O.solid = new THREE.Group();
@@ -443,11 +576,20 @@ code { font-family: var(--mono); font-size: 0.92em; }
                  dim([-12, 50, 0], [-12, 50, 110], '110', [-30, 50, 55]),
                  dim([cx, fy, 9.25], [cx, fy, 100.75], '91.5', [cx + 20, fy + 2, 55]));
       O.solid.add(O.dims);
+      // pilot-hole depth markers (12 mm into the face), shown in the "how it holds" beat
+      O.pilots = new THREE.Group();
+      for (const z of [9.25, 100.75]) {
+        const p = cyl(1.4, 12, MAT.lock, 12); p.rotation.x = Math.PI / 2;
+        p.position.set(cx, cy + 0.5, z); p.rotation.z = -a; O.pilots.add(p);
+      }
+      O.solid.add(O.pilots);
     }
     O.solid.add(O.solidDevice);
     O.solidScrews = [22, 88].map((z) => { const s = woodScrew(75); s.position.set(55, 19.5, z); home(s); O.solid.add(s); return s; });
-    tag(O.solidBlock, 'Block', '1 printed part', [27, 23, 118], ACC[1]);
-    tag(O.solidScrews[0], 'Wood screws × 2', '#8 flat head, 3 in', [24, 0, 16], ACC[1]);
+    O.t1 = [tag(O.solidBlock, 'Block', '1 printed part', [27, 23, 118], ACC[1]),
+            tag(O.solidScrews[0], 'Wood screws × 2', '#8 flat head, 3 in', [24, 0, 16], ACC[1])];
+    O.h1 = [tag(O.solid, 'Countersink, 82°', 'the head pulls the block tight', [70, 30, 34], ACC[1]),
+            tag(O.solid, 'Pilot holes, 12 mm deep', "for the camera's own screws", [27, 70, 112], ACC[1])];
     world.add(O.solid);
 
     // Option 2
@@ -467,19 +609,26 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.washerPivot.add(O.washer, O.clampBolt);
     O.hingeTop = bolt(16); O.hingeTop.position.set(HX, HY, 110); home(O.hingeTop);
     O.hingeBot = bolt(16); O.hingeBot.rotation.x = Math.PI; O.hingeBot.position.set(HX, HY, 0); home(O.hingeBot);
-    O.adj.add(O.base, O.shellPivot, O.washerPivot, O.hingeTop, O.hingeBot);
-    tag(O.base, 'Base', 'printed · screws to the wall', [10, 5, 116], ACC[2]);
-    tag(O.adjShell, 'Shell', 'printed · holds the camera', [28, 20, 116], ACC[2]);
-    tag(O.washer, 'Toothed washer', 'printed · 2° teeth', [60, 0, 88], ACC[2]);
-    tag(O.hingeTop, 'M4 bolts × 3', 'stainless + 3 nuts', [0, 0, 14], ACC[2]);
+    // captive nuts: hinge nuts slide in from the mounting face, the clamp nut from the back
+    O.nuts = HINGE_NUT_Z.map((z) => { const n = nut(); n.position.set(HX, HY, z); home(n); return n; });
+    O.clampNut = nut(); O.clampNut.rotation.y = Math.PI / 2; O.clampNut.rotation.z = CLAMP_A * D2R;
+    O.clampNut.position.set(HX + CLAMP_NUT_R * Math.cos(CLAMP_A * D2R), HY + CLAMP_NUT_R * Math.sin(CLAMP_A * D2R), CLAMP_Z); home(O.clampNut);
+    O.adj.add(O.base, O.shellPivot, O.washerPivot, O.hingeTop, O.hingeBot, ...O.nuts, O.clampNut);
+    O.t2 = [tag(O.base, 'Base', 'printed · screws to the wall', [10, 5, 116], ACC[2]),
+            tag(O.adjShell, 'Shell', 'printed · holds the camera', [28, 20, 116], ACC[2]),
+            tag(O.washer, 'Toothed washer', 'printed · 2° teeth', [60, 0, 88], ACC[2]),
+            tag(O.hingeTop, 'M4 bolts × 3', 'stainless + 3 nuts', [0, 0, 14], ACC[2])];
+    O.h2 = [tag(O.nuts[1], 'Hinge nut', 'trapped by the mounting surface', [-30, 10, 14], ACC[2]),
+            tag(O.clampNut, 'Clamp nut', 'trapped by the wall', [16, -8, 22], ACC[2]),
+            tag(O.washer, 'Teeth carry the load', 'the bolt squeezes them together', [66, 0, 54], ACC[2])];
     world.add(O.adj);
 
-    // Option 3
+    // Option 3 (the section plane applies to its printed parts)
     O.sld = new THREE.Group();
-    O.sldBase = part(G.slide_base, MAT.base);
+    O.sldBase = part(G.slide_base, MAT.base, [clipPlane]);
     O.sld.add(O.sldBase);
     O.sldPivot = new THREE.Group(); O.sldPivot.position.set(SP[0], SP[1], 0);
-    O.sldShell = home(part(G.slide_shell, MAT.shell));
+    O.sldShell = home(part(G.slide_shell, MAT.shell, [clipPlane]));
     O.sldPivot.add(O.sldShell);
     O.sldDevice = device(); O.sldDevice.position.set(0, SLIDE_FACE + 11.2, 55);
     O.sldPivot.add(O.sldDevice);
@@ -488,9 +637,12 @@ code { font-family: var(--mono); font-size: 0.92em; }
     { const pm = MAT.lock.clone(); const head = cyl(5, 3, pm, 24); head.position.z = -3; O.pinBody.add(head, cyl(2.1, 14, pm, 16)); O.pinMat = pm; }
     O.pin.add(O.pinBody);
     O.sld.add(O.sldPivot, O.pin);
-    tag(O.sldBase, 'Base', 'printed · curved dovetail rails', [10, 5, 116], ACC[3]);
-    tag(O.sldShell, 'Shell', 'printed · slides on the rails', [0, 70, 116], ACC[3]);
-    tag(O.pinBody, 'Lock pin', 'printed · one hole per angle', [0, 0, -16], ACC[3]);
+    O.t3 = [tag(O.sldBase, 'Base', 'printed · curved dovetail rails', [10, 5, 116], ACC[3]),
+            tag(O.sldShell, 'Shell', 'printed · slides on the rails', [0, 70, 116], ACC[3]),
+            tag(O.pinBody, 'Lock pin', 'printed · one hole per angle', [0, 0, -16], ACC[3])];
+    O.h3 = [tag(O.sld, 'Dovetail rail', "angled sides: can't lift or pull away", [60, 10, 104], ACC[3]),
+            tag(O.sldShell, 'Groove end', 'stops the slide just past 15°', [-34, 44, 100], ACC[3]),
+            tag(O.pinBody, '0.1 mm grip', 'stays in, pulls out by hand', [0, 0, -16], ACC[3])];
     world.add(O.sld);
 
     // Option 4 (the cutaway plane applies to its printed parts)
@@ -508,12 +660,17 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.lockScrew = upScrew(20, 16, 5, 32); O.lockScrew.position.set(LOCK[0], LOCK[1], LOCK[2]); home(O.lockScrew);
     O.pivScrews = [25, 88].map((z) => { const s = woodScrew(75); s.position.set(49, 19.5, z); home(s); O.piv.add(s); return s; });
     O.piv.add(O.pivBase, O.pivPivot, O.pivWasher, O.pivotScrew, O.lockScrew);
-    tag(O.pivBase, 'Base + roof', 'printed · M5 threads inside', [10, 5, 116], ACC[4]);
-    tag(O.pivShell, 'Shell', 'printed · teeth underneath', [28, 30, 116], ACC[4]);
-    tag(O.pivWasher, 'Toothed washer', 'printed · 3° teeth', [LOCK[0] + 22, LOCK[1], -2], ACC[4]);
-    tag(O.pivotScrew, 'Pivot screw', 'M5 × 20 socket head', [-26, 0, -12], ACC[4]);
-    tag(O.lockScrew, 'Thumb screw', 'M5 × 20 · the lock', [26, 0, -12], ACC[4]);
-    tag(O.pivScrews[0], 'Wood screws × 2', '#8 flat head, 3 in', [24, 0, 16], ACC[4]);
+    O.t4 = [tag(O.pivBase, 'Base + roof', 'printed · M5 threads inside', [10, 5, 116], ACC[4]),
+            tag(O.pivShell, 'Shell', 'printed · teeth underneath', [28, 30, 116], ACC[4]),
+            tag(O.pivWasher, 'Toothed washer', 'printed · 3° teeth', [LOCK[0] + 22, LOCK[1], -2], ACC[4]),
+            tag(O.pivotScrew, 'Pivot screw', 'M5 × 20 socket head', [-26, 0, -12], ACC[4]),
+            tag(O.lockScrew, 'Thumb screw', 'M5 × 20 · the lock', [26, 0, -12], ACC[4]),
+            tag(O.pivScrews[0], 'Wood screws × 2', '#8 flat head, 3 in', [24, 0, 16], ACC[4])];
+    O.h4 = [tag(O.piv, '14 mm of thread', 'pivot screw, printed thread', [-14, 34, 16], ACC[4], 12),
+            tag(O.piv, '10 mm of thread', 'lock screw, printed thread', [62, 26, 14], ACC[4], 12),
+            tag(O.piv, 'Roof 0.4 mm above', 'the shell cannot rise', [30, 30, 122], ACC[4], 12),
+            tag(O.piv, "Washer can't turn", 'its sides follow the track', [62, 26, -12], ACC[4], 12),
+            tag(O.piv, 'Nylon locking patch', 'on both screws', [-14, 34, -16], ACC[4], 12)];
     world.add(O.piv);
 
     // Install context: inside corner (side surface at x=0, wall at y=0) and the cable
@@ -526,6 +683,13 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.site.add(side, back, O.cable);
     world.add(O.site);
 
+    // Overhead angle view
+    AV.labelCanvas = document.createElement('canvas'); AV.labelCanvas.width = 256; AV.labelCanvas.height = 128;
+    AV.label = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(AV.labelCanvas), transparent: true, depthTest: false }));
+    AV.label.scale.set(28, 14, 1); AV.label.renderOrder = 11; AV.label.material.map.encoding = THREE.sRGBEncoding;
+    AV.group.add(AV.label);
+    world.add(AV.group);
+
     // Side-by-side labels, in each option's accent colour
     O.rowLabels = ['1 · Solid', '2 · Hinge', '3 · Dovetail', '4 · Pivot'].map((txt, i) => {
       const l = label(txt, '', ACC[i + 1], 14); l.position.set(222.5 - 130 * i, 85, 8); world.add(l); return l;
@@ -534,34 +698,46 @@ code { font-family: var(--mono); font-size: 0.92em; }
 
   // ---------- timeline (scenes match docs/video/storyboard.md) ----------
   const S = [
-    { id: 'sketch',  t0: 0,   t1: 12,  chip: 'The sketch',         acc: 'n' },
-    { id: 'shared',  t0: 12,  t1: 26,  chip: 'Fixed measurements', acc: 'n' },
-    { id: 'solid',   t0: 26,  t1: 54,  chip: '1 · Solid',          acc: 1 },
-    { id: 'hinge',   t0: 54,  t1: 94,  chip: '2 · Hinge',          acc: 2 },
-    { id: 'slide',   t0: 94,  t1: 134, chip: '3 · Dovetail',       acc: 3 },
-    { id: 'pivot',   t0: 134, t1: 184, chip: '4 · Pivot',          acc: 4 },
-    { id: 'adjust4', t0: 184, t1: 200, chip: 'Adjusting 4',        acc: 4 },
-    { id: 'row',     t0: 200, t1: 218, chip: 'Side by side',       acc: 'n' },
-    { id: 'end',     t0: 218, t1: 230, chip: 'The end',            acc: 'n' },
+    { id: 'sketch',  t0: 0,   t1: 22,  chip: 'The sketch',          acc: 'n' },
+    { id: 'shared',  t0: 22,  t1: 38,  chip: 'Fixed measurements',  acc: 'n' },
+    { id: 'solid',   t0: 38,  t1: 66,  chip: '1 · Solid',           acc: 1 },
+    { id: 'hold1',   t0: 66,  t1: 88,  chip: '1 · How it holds',    acc: 1 },
+    { id: 'hinge',   t0: 88,  t1: 134, chip: '2 · Hinge',           acc: 2 },
+    { id: 'hold2',   t0: 134, t1: 160, chip: '2 · How it holds',    acc: 2 },
+    { id: 'slide',   t0: 160, t1: 208, chip: '3 · Dovetail',        acc: 3 },
+    { id: 'hold3',   t0: 208, t1: 236, chip: '3 · How it holds',    acc: 3 },
+    { id: 'pivot',   t0: 236, t1: 292, chip: '4 · Pivot',           acc: 4 },
+    { id: 'hold4',   t0: 292, t1: 320, chip: '4 · How it holds',    acc: 4 },
+    { id: 'adjust4', t0: 320, t1: 338, chip: '4 · Adjusting',       acc: 4 },
+    { id: 'row',     t0: 338, t1: 358, chip: 'Side by side',        acc: 'n' },
+    { id: 'end',     t0: 358, t1: 372, chip: 'The end',             acc: 'n' },
   ];
-  const DURATION = 230;
+  const DURATION = 372;
 
   const CAP = {
     sketch:  { k: 'Where it started', t: 'From a sketch',
-               b: '55 × 110 mm, a wiring pocket, two holes 91.5 mm apart, and an angle marked "?".' },
+               b: '55 × 110 mm, two holes 91.5 mm apart, a wiring pocket, a cable hole, and an angle marked "?".' },
     shared:  { k: 'Every option', t: 'One set of fixed measurements',
-               b: 'Face, Ring holes, cable hole and pocket come from one file, so all four options match.' },
+               b: 'Face, Ring holes, cable hole and pocket come from one file, so all four options match the sketch.' },
     solid:   { k: 'Option 1', t: 'Solid block · 8°',
                b: 'One printed part and two screws. The wiring sits in a pocket behind the camera.' },
+    hold1:   { k: 'Option 1', t: 'How it holds',
+               b: 'Flat-head screws in 82° countersinks pull it tight. The camera screws into 12 mm pilot holes.' },
     hinge:   { k: 'Option 2', t: 'Adjustable hinge · 3–15° in 2° steps',
-               b: 'Base, shell and toothed washer, plus M4 bolts. The teeth take the load, not friction.' },
+               b: 'Base, shell and toothed washer, plus M4 bolts. The shell swings on the hinge bolt at the corner.' },
+    hold2:   { k: 'Option 2', t: 'How it holds',
+               b: 'The nuts are trapped by the surface and the wall. The clamp bolt squeezes the washer into the teeth.' },
     slide:   { k: 'Option 3', t: 'Dovetail slide · all printed',
-               b: 'Base, shell and a lock pin. The pin goes into the hole marked with the angle.' },
+               b: 'The shell rides curved rails around a point behind the wall. A printed pin locks the angle.' },
+    hold3:   { k: 'Option 3', t: 'How it holds',
+               b: "Dovetails stop it lifting or pulling away. The groove end stops it at 15°. The pin grips by 0.1 mm." },
     pivot:   { k: 'Option 4', t: 'Pivot with roof · 3–15° in 3° steps',
-               b: 'The base screws on first and its roof keeps the rain off. The shell slides up, pivots on a screw, and a toothed washer locks it.' },
+               b: 'The base screws on first and its roof keeps the rain off. The shell turns on the pivot screw.' },
+    hold4:   { k: 'Option 4', t: 'How it holds',
+               b: 'Both screws thread into the base, with nylon locking patches. The washer cannot turn in its track.' },
     adjust4: { k: 'Option 4', t: 'Two turns to adjust',
                b: 'Loosen the thumb screw, turn the shell, tighten. The washer stays in its track.' },
-    row:     { k: 'Side by side', t: 'Four options, one set of measurements',
+    row:     { k: 'Side by side', t: 'One sketch, four options',
                b: '1: fixed 8° · 2: M4 bolts, 2° steps · 3: no extra hardware · 4: two M5 screws, 3° steps.' },
     end:     { k: 'Open source', t: 'Built from code',
                b: 'Every part is generated by OpenSCAD and collision-checked at every angle.' },
@@ -571,38 +747,53 @@ code { font-family: var(--mono); font-size: 0.92em; }
   const orbit = (deg, r, z, tx = 27, ty = 23, tz = 55) =>
     ({ p: [tx + r * Math.cos(deg * D2R), ty + r * Math.sin(deg * D2R), z], t: [tx, ty, tz] });
   const UNDER = { p: [95, 150, -95], t: [30, 22, 12] };   // looking up at the bottom plate
-  const TOP = { p: [40, 175, 330], t: [27, 25, 50] };
-  const CUT = { p: [70, 210, 40], t: [32, 22, 14] };      // option 4 cutaway, low and in front
+  const OVER = { 2: { p: [32, -10, 430], t: [32, 40, 60] }, 3: { p: [30, -24, 470], t: [30, 28, 60] }, 4: { p: [32, -10, 430], t: [32, 40, 60] } };
+  const N4 = [0.1737, 0.9848];                            // option 4 cutaway: normal of the plane through both screw axes
+  const CUT4 = { p: [25 + 240 * N4[0], 27 + 240 * N4[1], 75], t: [25, 27, 42] };
   const CAM = {
-    sketch:  (u) => { const a = { p: [27, 330, 380], t: [27, 40, 0] }, b = orbit(55, 260, 150, 27, 23, 45); return mix(a, b, seg(u, 0.25, 1)); },
-    shared:  (u) => orbit(lerp(80, 96, ease(u)), 300, lerp(120, 95, u), 22, 23, 58),
-    solid:   (u) => orbit(lerp(96, 25, ease(u)), lerp(260, 320, bumpy(u, 0.34, 0.62)), lerp(150, 120, u), 40, 23, 50),
-    hinge:   (u) => mix(orbit(lerp(35, 75, u / 0.46), 340, 180, 45, 20, 50), TOP, seg(u, 0.44, 0.52)),
+    sketch:  () => orbit(55, 260, 150, 27, 23, 45),
+    shared:  (u) => orbit(lerp(70, 96, ease(u)), 300, lerp(140, 95, u), 10, 23, 58),
+    solid:   (u) => mix(orbit(lerp(96, 25, ease(u / 0.62)), lerp(260, 320, win(u, 0.3, 0.62, 0.06)), lerp(150, 120, u), 40, 23, 50),
+                        orbit(45, 340, 190, 35, 25, 60), seg(u, 0.62, 0.7)),
+    hold1:   (u) => {
+      let p = { p: [150, 120, 190], t: [35, 20, 15] };                            // above the section at screw height
+      p = mix(p, orbit(80, 230, 80, 27, 30, 55), seg(u, 0.34, 0.42));            // the face, close
+      return mix(p, orbit(45, 340, 190, 35, 25, 60), seg(u, 0.62, 0.7));
+    },
+    hinge:   (u) => mix(orbit(lerp(35, 75, u / 0.34), 340, 180, 45, 20, 50), OVER[2], seg(u, 0.33, 0.39)),
+    hold2:   (u) => mix(mix(orbit(lerp(150, 120, u), 260, 170, 15, 25, 60), orbit(30, 250, 120, 40, 20, 70), seg(u, 0.32, 0.4)),
+                        orbit(45, 340, 190, 35, 25, 60), seg(u, 0.6, 0.68)),
     slide:   (u) => {
-      let p = orbit(lerp(45, 80, u / 0.4), 350, 190, 30, 25, 45);
-      p = mix(p, { p: [90, 170, -70], t: [30, 15, 10] }, seg(u, 0.38, 0.46));
-      p = mix(p, { p: [45, 200, 330], t: [30, 25, 50] }, seg(u, 0.5, 0.56) * (1 - seg(u, 0.8, 0.86)));
+      let p = orbit(lerp(45, 80, u / 0.3), 350, 190, 30, 25, 45);
+      p = mix(p, { p: [90, 170, -70], t: [30, 15, 10] }, seg(u, 0.28, 0.33));
+      p = mix(p, OVER[3], seg(u, 0.38, 0.43) * (1 - seg(u, 0.74, 0.78)));
       return p;
+    },
+    hold3:   (u) => {
+      let p = { p: [70, 60, 300], t: [30, 15, 92] };                               // down onto the rail section
+      p = mix(p, OVER[3], seg(u, 0.34, 0.4));
+      p = mix(p, { p: [90, 170, -70], t: [30, 15, 10] }, seg(u, 0.58, 0.63));
+      return mix(p, orbit(45, 360, 190, 35, 25, 55), seg(u, 0.74, 0.8));
     },
     pivot:   (u) => {
-      let p = orbit(lerp(35, 70, u / 0.27), 540, 230, 45, 30, 95);
-      p = mix(p, orbit(lerp(48, 64, u), 345, 190, 35, 25, 62), seg(u, 0.25, 0.3));
-      p = mix(p, UNDER, seg(u, 0.6, 0.66) * (1 - seg(u, 0.76, 0.8)));
-      p = mix(p, CUT, seg(u, 0.77, 0.81) * (1 - seg(u, 0.88, 0.92)));
-      return p;
+      let p = orbit(lerp(35, 70, u / 0.25), 540, 230, 45, 30, 95);
+      p = mix(p, orbit(lerp(48, 64, u), 345, 190, 35, 25, 62), seg(u, 0.23, 0.28));
+      p = mix(p, UNDER, seg(u, 0.6, 0.65) * (1 - seg(u, 0.73, 0.77)));
+      return mix(p, OVER[4], seg(u, 0.74, 0.79));
     },
-    adjust4: (u) => mix(UNDER, TOP, seg(u, 0.18, 0.3) * (1 - seg(u, 0.62, 0.72))),
+    hold4:   (u) => mix(mix(OVER[4], CUT4, seg(u, 0, 0.06)), orbit(45, 340, 190, 35, 25, 60), seg(u, 0.68, 0.76)),
+    adjust4: (u) => mix(UNDER, OVER[4], seg(u, 0.18, 0.26) * (1 - seg(u, 0.68, 0.76))),
     row:     (u) => orbit(lerp(72, 86, u), 640, 250, 28, 23, 50),
-    end:     (u) => orbit(lerp(86, 92, u), lerp(640, 760, ease(u)), 280, 28, 23, 50),
+    // looking left of the row, so the mounts sit on the right and the sketch fits on the left
+    end:     (u) => orbit(lerp(86, 92, u), lerp(640, 900, ease(u)), 300, lerp(28, 190, ease(u)), 23, 50),
   };
   function mix(a, b, t) { return { p: a.p.map((v, i) => lerp(v, b.p[i], t)), t: a.t.map((v, i) => lerp(v, b.t[i], t)) }; }
-  function bumpy(u, a, b) { return seg(u, a, a + 0.06) * (1 - seg(u, b - 0.06, b)); }   // up over [a, a+.06], down before b
 
   // Click through a list of angles: dwell, then snap to the next
   function clickThrough(u, seq) {
-    const x = Math.min(u, 0.9999) * (seq.length - 1);
+    const x = Math.min(Math.max(u, 0), 0.9999) * (seq.length - 1);
     const i = Math.floor(x), f = x - i;
-    const snap = f < 0.65 ? 0 : ease((f - 0.65) / 0.35);
+    const snap = f < 0.7 ? 0 : ease((f - 0.7) / 0.3);
     return lerp(seq[i], seq[Math.min(i + 1, seq.length - 1)], snap);
   }
   const moving = (a, list) => Math.min(1, 4 * Math.min(...list.map((v) => Math.abs(v - a))));   // 1 while between steps
@@ -615,6 +806,12 @@ code { font-family: var(--mono); font-size: 0.92em; }
     const A = p(a), B = p(b);
     return '#' + A.map((v, i) => Math.round(lerp(v, B[i], t)).toString(16).padStart(2, '0')).join('');
   };
+  // Camera seats on the face at the end of each "how it holds" beat
+  function seat(dev, u, a, b) {
+    dev.visible = u > a; dev.cone.visible = u > b;
+    dev.cone.scale.setScalar(Math.max(0.01, seg(u, b, b + 0.1)));
+    return lerp(90, 0, seg(u, a, a + 0.14));            // distance out along the face normal
+  }
 
   // ---------- apply state for time t; returns the overlay state ----------
   let lastCapId = '';
@@ -624,16 +821,18 @@ code { font-family: var(--mono); font-size: 0.92em; }
     const u = Math.min(1, Math.max(0, (t - s.t0) / (s.t1 - s.t0)));
 
     // defaults
-    for (const m of GLOW) m.material.emissive.setHex(0);
+    for (const p of GLOW) { p.mesh.material.emissive.setHex(0); ghost(p, 1); }
     for (const o of HOMES) o.position.copy(o.userData.home);
-    for (const l of LABELS) { l.material.opacity = 0; l.visible = false; }
-    O.paper.visible = false; O.paper.material.opacity = 1;
-    O.solid.visible = false; O.solid.position.set(0, 0, 0); O.dims.visible = false;
+    showTags(LABELS, 0);
+    O.solid.visible = false; O.solid.position.set(0, 0, 0); O.dims.visible = false; O.pilots.visible = false;
     O.solidDevice.visible = false; O.solidDevice.place(0); O.solidDevice.cone.visible = false;
     O.solidScrews.forEach((x) => (x.visible = false));
-    clipPlane.constant = 1000; cutPlane.constant = 1e4;
-    O.adj.visible = false; O.adj.position.set(0, 0, 0); O.adjDevice.visible = false;
-    O.sld.visible = false; O.sld.position.set(0, 0, 0); O.sldDevice.visible = false; O.pinMat.emissive.setHex(0);
+    clipPlane.constant = 1000; cutPlane.normal.set(0, 0, 1); cutPlane.constant = 1e4;
+    O.adj.visible = false; O.adj.position.set(0, 0, 0); O.adjDevice.visible = false; O.adjDevice.cone.visible = false;
+    O.adjDevice.position.y = FACE_FRONT + 11.2;
+    O.nuts.forEach((n) => (n.visible = false)); O.clampNut.visible = false;
+    O.sld.visible = false; O.sld.position.set(0, 0, 0); O.sldDevice.visible = false; O.sldDevice.cone.visible = false;
+    O.sldDevice.position.y = SLIDE_FACE + 11.2; O.pinMat.emissive.setHex(0);
     O.piv.visible = false; O.piv.position.set(0, 0, 0); O.pivPivot.visible = true;
     O.pivDevice.visible = false; O.pivDevice.cone.visible = false; O.pivDevice.position.y = FACE_FRONT + 11.2;
     O.pivScrews.forEach((x) => (x.visible = false));
@@ -641,107 +840,158 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.pivotScrew.rotation.z = O.lockScrew.rotation.z = 0;
     O.site.visible = false; O.cable.position.y = -40;
     O.rowLabels.forEach((l) => (l.visible = false));
-    let a2 = 9, a3 = 9, a4 = 9, ro = { show: 0, angle: 9, list: A2 }, endCard = 0;
-    const showTags = (parts, k) => parts.forEach((p) => p.children.forEach((c) => { if (LABELS.includes(c)) { c.visible = k > 0.01; c.material.opacity = k; } }));
+    AV.label.visible = false;
+    let a2 = 9, a3 = 9, a4 = 9, ro = { show: 0, angle: 9, list: A2 }, endCard = 0, sketch = null, av = null;
 
     switch (s.id) {
       case 'sketch':
-        O.paper.visible = true; O.solid.visible = true;
-        clipPlane.constant = lerp(0, 112, seg(u, 0.3, 0.95));
+        O.solid.visible = true; clipPlane.constant = 0;
+        sketch = sketchTour(u);
         break;
       case 'shared':
-        O.paper.visible = u < 0.15; O.paper.material.opacity = 1 - seg(u, 0, 0.15);
-        O.solid.visible = true; O.dims.visible = u > 0.15;
-        O.dims.children.forEach((d, i) => (d.visible = u > 0.2 + 0.15 * i));
+        O.solid.visible = true; clipPlane.constant = lerp(0, 112, seg(u, 0.02, 0.3));
+        O.dims.visible = u > 0.3;
+        O.dims.children.forEach((d, i) => (d.visible = u > 0.34 + 0.16 * i));
+        sketch = { mode: 'inset', alpha: seg(u, 0, 0.06), hi: { size: u > 0.34 ? 1 : 0, holes: u > 0.66 ? 1 : 0, pocket: u > 0.8 ? 1 : 0, cable: u > 0.8 ? 1 : 0 } };
         break;
       case 'solid': {
         O.solid.visible = true;
         // X-ray: cut through the pocket and cable hole, then close again
-        if (u > 0.05 && u < 0.32) clipPlane.constant = u < 0.2 ? lerp(112, 45, seg(u, 0.05, 0.12)) : lerp(45, 112, seg(u, 0.26, 0.32));
-        const e = seg(u, 0.34, 0.42) * (1 - seg(u, 0.56, 0.62));
-        O.solidScrews.forEach((x) => { x.visible = u > 0.33; off(x, e, 70, 0, 0); });
-        showTags([O.solidBlock, O.solidScrews[0]], seg(u, 0.38, 0.44) * (1 - seg(u, 0.54, 0.58)));
-        glow(O.solidBlock, '#ffffff', bump(u, 0.62, 0.025));
-        O.solidDevice.visible = u > 0.66; O.solidDevice.place(lerp(90, 0, seg(u, 0.66, 0.78)));
-        O.solidDevice.cone.visible = u > 0.78; O.solidDevice.cone.scale.setScalar(Math.max(0.01, seg(u, 0.78, 0.9)));
-        ro = { show: seg(u, 0.78, 0.82), angle: 8, list: [8] };
+        if (u > 0.04 && u < 0.28) clipPlane.constant = u < 0.16 ? lerp(112, 45, seg(u, 0.04, 0.1)) : lerp(45, 112, seg(u, 0.22, 0.28));
+        const e = seg(u, 0.3, 0.37) * (1 - seg(u, 0.52, 0.58));
+        O.solidScrews.forEach((x) => { x.visible = u > 0.29; off(x, e, 70, 0, 0); });
+        showTags(O.t1, win(u, 0.34, 0.54));
+        glow(O.solidBlock, '#ffffff', bump(u, 0.58, 0.02));
+        // into the corner: block flies in, screws drive
+        O.site.visible = u > 0.62;
+        O.cable.position.y = lerp(-95, -40, seg(u, 0.62, 0.68));
+        const fly = 1 - seg(u, 0.66, 0.78);
+        O.solid.position.set(140 * fly, 90 * fly, 0);
+        if (u > 0.62) O.solidScrews.forEach((x) => (x.position.x = lerp(140, 55, seg(u, 0.8, 0.94))));
+        break;
+      }
+      case 'hold1': {
+        O.solid.visible = true; O.site.visible = true; O.solidScrews.forEach((x) => (x.visible = true));
+        clipPlane.constant = u < 0.36 ? lerp(112, 22, seg(u, 0, 0.08)) : 1000;   // section at the lower screw
+        showTags([O.h1[0]], win(u, 0.06, 0.34));
+        O.pilots.visible = u > 0.38 && u < 0.62; ghost(O.solidBlock, u > 0.38 && u < 0.62 ? 0.4 : 1);
+        showTags([O.h1[1]], win(u, 0.4, 0.62));
+        const d = seat(O.solidDevice, u, 0.66, 0.84); O.solidDevice.place(d);
+        ro = { show: seg(u, 0.84, 0.88), angle: 8, list: [8] };
         break;
       }
       case 'hinge': {
-        O.solid.visible = u < 0.08; O.solid.position.x = lerp(0, -170, seg(u, 0, 0.08));
-        O.adj.visible = u > 0.02; O.adj.position.x = lerp(170, 0, seg(u, 0.02, 0.1));
-        const e = seg(u, 0.1, 0.2) * (1 - seg(u, 0.38, 0.44));
+        O.solid.visible = u < 0.06; O.solid.position.x = lerp(0, -170, seg(u, 0, 0.06)); O.solidScrews.forEach((x) => (x.visible = true));
+        O.adj.visible = u > 0.02; O.adj.position.x = lerp(170, 0, seg(u, 0.02, 0.08));
+        const e = seg(u, 0.08, 0.15) * (1 - seg(u, 0.26, 0.31));
         off(O.shellSlide, e, 80, 0, 0); off(O.washer, e, 34, 0, 0); off(O.clampBolt, e, 64, 0, 0);
         off(O.hingeTop, e, 0, 0, 50); off(O.hingeBot, e, 0, 0, -50);
-        showTags([O.base, O.adjShell, O.washer, O.hingeTop], seg(u, 0.16, 0.22) * (1 - seg(u, 0.36, 0.4)));
-        const flash = bump(u, 0.44, 0.02);
+        showTags(O.t2, win(u, 0.12, 0.27));
+        const flash = bump(u, 0.31, 0.015);
         glow(O.adjShell, '#ffffff', flash); glow(O.washer, '#ffffff', flash);
-        a2 = u < 0.48 ? 9 : clickThrough((u - 0.48) / 0.5, [9, 3, 5, 7, 9, 11, 13, 15, 9]);
-        glow(O.washer, ACC.n, u > 0.48 ? moving(a2, A2) : 0);
-        O.adjDevice.visible = u > 0.46;
-        ro = { show: seg(u, 0.46, 0.5), angle: a2, list: A2 };
+        a2 = u < 0.38 ? 9 : clickThrough((u - 0.38) / 0.6, [9, 3, 5, 7, 9, 11, 13, 15, 9]);
+        glow(O.washer, ACC.n, u > 0.38 ? moving(a2, A2) : 0);
+        av = { opt: 2, a: a2, k: seg(u, 0.36, 0.4) };
+        ro = { show: seg(u, 0.36, 0.4), angle: a2, list: A2 };
+        break;
+      }
+      case 'hold2': {
+        O.adj.visible = true; O.site.visible = true;
+        ghost(O.base, u < 0.58 ? lerp(1, 0.3, seg(u, 0, 0.06)) : lerp(0.3, 1, seg(u, 0.58, 0.62)));
+        ghost(O.adjShell, u < 0.58 ? lerp(1, 0.3, seg(u, 0, 0.06)) : lerp(0.3, 1, seg(u, 0.58, 0.62)));
+        O.nuts.forEach((n) => { n.visible = true; off(n, 1 - seg(u, 0.06, 0.16), -30, 0, 0); });
+        O.clampNut.visible = true; off(O.clampNut, 1 - seg(u, 0.16, 0.26), 0, -40, 0);
+        showTags(O.h2.slice(0, 2), win(u, 0.1, 0.36));
+        off(O.clampBolt, 1 - seg(u, 0.36, 0.46), 30, 0, 0);
+        glow(O.washer, ACC[2], win(u, 0.42, 0.58)); showTags([O.h2[2]], win(u, 0.42, 0.58));
+        const d = seat(O.adjDevice, u, 0.66, 0.84); O.adjDevice.position.y = FACE_FRONT + 11.2 + d;
         break;
       }
       case 'slide': {
-        O.adj.visible = u < 0.08; O.adj.position.x = lerp(0, -170, seg(u, 0, 0.08)); a2 = 15; O.adjDevice.visible = true;
-        O.sld.visible = u > 0.02; O.sld.position.x = lerp(170, 0, seg(u, 0.02, 0.1));
-        const e = seg(u, 0.1, 0.18) * (1 - seg(u, 0.32, 0.38));
+        O.adj.visible = u < 0.06; O.adj.position.x = lerp(0, -170, seg(u, 0, 0.06)); a2 = 15; O.adjDevice.visible = true;
+        O.sld.visible = u > 0.02; O.sld.position.x = lerp(170, 0, seg(u, 0.02, 0.08));
+        const e = seg(u, 0.08, 0.14) * (1 - seg(u, 0.24, 0.28));
         off(O.sldShell, e, 0, 70, 0);
-        showTags([O.sldBase, O.sldShell, O.pinBody], seg(u, 0.14, 0.2) * (1 - seg(u, 0.3, 0.34)));
-        glow(O.sldShell, '#ffffff', bump(u, 0.38, 0.02));
-        O.sldDevice.visible = u > 0.4;
-        // at 3 with the pin in; pin drops; slide to 15 and back to 9; pin goes in
-        const pinOut = Math.max(e, seg(u, 0.44, 0.5) * (1 - seg(u, 0.84, 0.92)));
-        a3 = u < 0.52 ? 3 : u < 0.74 ? lerp(3, 15, seg(u, 0.52, 0.72)) : lerp(15, 9, seg(u, 0.74, 0.8));
-        pinAt(u < 0.62 ? 3 : 9, 30 * pinOut);
-        O.pinMat.emissive.set(ACC[3]).multiplyScalar(0.6 * bumpy(u, 0.82, 0.98));
-        ro = { show: seg(u, 0.4, 0.46), angle: a3, list: A2 };
+        showTags(O.t3, win(u, 0.11, 0.25));
+        glow(O.sldShell, '#ffffff', bump(u, 0.28, 0.015));
+        // at 3 with the pin in; pin drops; slide 3..15 in clicks, back to 9; pin goes in
+        const pinOut = Math.max(e, seg(u, 0.3, 0.36) * (1 - seg(u, 0.84, 0.9)));
+        a3 = u < 0.42 ? 3 : u < 0.64 ? clickThrough((u - 0.42) / 0.22, A2) : lerp(15, 9, seg(u, 0.65, 0.72));
+        pinAt(u < 0.5 ? 3 : 9, 30 * pinOut);
+        O.pinMat.emissive.set(ACC[3]).multiplyScalar(0.6 * win(u, 0.84, 0.98));
+        av = { opt: 3, a: a3, k: win(u, 0.39, 0.76) };
+        ro = { show: seg(u, 0.38, 0.42), angle: a3, list: A2 };
+        break;
+      }
+      case 'hold3': {
+        O.sld.visible = true;
+        clipPlane.constant = u < 0.32 ? lerp(112, 92, seg(u, 0, 0.06)) : 1000;   // section through the top rail
+        showTags([O.h3[0]], win(u, 0.06, 0.32));
+        a3 = u < 0.36 ? 9 : u < 0.56 ? lerp(9, 15.5, seg(u, 0.38, 0.5)) : lerp(15.5, 9, seg(u, 0.52, 0.58));
+        showTags([O.h3[1]], win(u, 0.44, 0.56));
+        av = { opt: 3, a: a3, k: win(u, 0.36, 0.58) };
+        pinAt(9, Math.max(25 * win(u, 0.34, 0.6), 6 * bump(u, 0.67, 0.04)));   // out while sliding, then a tug
+        showTags([O.h3[2]], win(u, 0.6, 0.74));
+        const d = seat(O.sldDevice, u, 0.76, 0.9); O.sldDevice.position.y = SLIDE_FACE + 11.2 + d;
         break;
       }
       case 'pivot': {
-        O.sld.visible = u < 0.05; O.sld.position.x = lerp(0, -170, seg(u, 0, 0.05)); a3 = 15; pinAt(15, 0); O.sldDevice.visible = true;
-        O.piv.visible = u > 0.03;
-        if (u < 0.27) {
+        O.sld.visible = u < 0.04; O.sld.position.x = lerp(0, -170, seg(u, 0, 0.04)); a3 = 15; pinAt(15, 0); O.sldDevice.visible = true;
+        if (u < 0.25) {
           // the kit: every part, exploded and labelled
-          const e = seg(u, 0.03, 0.09) * (1 - seg(u, 0.24, 0.27));
+          const e = seg(u, 0.03, 0.08) * (1 - seg(u, 0.22, 0.25));
+          O.piv.visible = u > 0.03 && u < 0.245;
           off(O.pivSlide, e, 0, 75, 0); off(O.pivWasher, e, 0, 0, -40);
           off(O.pivotScrew, e, -15, 0, -55); off(O.lockScrew, e, 10, 0, -70);
           O.pivScrews.forEach((x) => { x.visible = true; off(x, e, 70, 0, 0); });
-          showTags([O.pivBase, O.pivShell, O.pivWasher, O.pivotScrew, O.lockScrew, O.pivScrews[0]], seg(u, 0.08, 0.12) * (1 - seg(u, 0.22, 0.25)));
-          O.piv.visible = u > 0.03 && u < 0.265;
           O.piv.position.z = 80 * e;               // lifted, so the parts below it clear the floor
+          showTags(O.t4, win(u, 0.07, 0.23));
           break;
         }
         // the install
-        O.site.visible = true;
-        O.cable.position.y = lerp(-95, -40, seg(u, 0.27, 0.3));
-        const baseIn = seg(u, 0.28, 0.36);
+        O.piv.visible = true; O.site.visible = true;
+        O.cable.position.y = lerp(-95, -40, seg(u, 0.25, 0.28));
+        const baseIn = seg(u, 0.26, 0.33);
         O.pivBase.position.set(lerp(140, 0, baseIn), lerp(90, 0, baseIn), 0);
-        glow(O.pivBase, ACC[4], bumpy(u, 0.34, 0.44));
-        O.pivScrews.forEach((x) => { x.visible = u > 0.36; x.position.x = lerp(130, 49, seg(u, 0.36, 0.43)); });
-        O.pivPivot.visible = u > 0.44;
-        O.pivSlide.position.z = lerp(-150, 0, seg(u, 0.44, 0.56));
-        O.pivotScrew.visible = u > 0.56;
-        O.pivotScrew.position.z = lerp(-40, 0, seg(u, 0.56, 0.62)); O.pivotScrew.rotation.z = 12 * seg(u, 0.57, 0.63);
-        O.pivWasher.visible = u > 0.64; O.pivWasher.position.z = lerp(-30, 0, seg(u, 0.64, 0.7));
-        O.lockScrew.visible = u > 0.68;
-        O.lockScrew.position.z = LOCK[2] + lerp(-40, 0, seg(u, 0.68, 0.76)); O.lockScrew.rotation.z = 14 * seg(u, 0.7, 0.77);
-        glow(O.pivWasher, ACC[4], bumpy(u, 0.72, 0.8)); glow(O.pivShell, ACC[4], 0.6 * bumpy(u, 0.72, 0.8));
-        if (u > 0.79 && u < 0.9) cutPlane.constant = lerp(80, LOCK[1], seg(u, 0.79, 0.83));
-        O.pivDevice.visible = u > 0.9; O.pivDevice.position.y = FACE_FRONT + 11.2 + lerp(90, 0, seg(u, 0.9, 0.97));
-        O.pivDevice.cone.visible = u > 0.97; O.pivDevice.cone.scale.setScalar(Math.max(0.01, seg(u, 0.97, 1)));
-        ro = { show: seg(u, 0.76, 0.8), angle: 9, list: A4 };
+        glow(O.pivBase, ACC[4], win(u, 0.32, 0.4));
+        O.pivScrews.forEach((x) => { x.visible = u > 0.33; x.position.x = lerp(130, 49, seg(u, 0.33, 0.4)); });
+        O.pivPivot.visible = u > 0.41;
+        O.pivSlide.position.z = lerp(-150, 0, seg(u, 0.41, 0.52));
+        O.pivotScrew.visible = u > 0.52;
+        O.pivotScrew.position.z = lerp(-40, 0, seg(u, 0.52, 0.58)); O.pivotScrew.rotation.z = 12 * seg(u, 0.53, 0.59);
+        O.pivWasher.visible = u > 0.62; O.pivWasher.position.z = lerp(-30, 0, seg(u, 0.62, 0.67));
+        O.lockScrew.visible = u > 0.65;
+        O.lockScrew.position.z = LOCK[2] + lerp(-40, 0, seg(u, 0.65, 0.72)); O.lockScrew.rotation.z = 14 * seg(u, 0.66, 0.73);
+        glow(O.pivWasher, ACC[4], win(u, 0.69, 0.76)); glow(O.pivShell, ACC[4], 0.6 * win(u, 0.69, 0.76));
+        a4 = u < 0.79 ? 9 : clickThrough((u - 0.79) / 0.2, [9, 3, 6, 9, 12, 15, 9]);
+        av = { opt: 4, a: a4, k: seg(u, 0.77, 0.8) };
+        ro = { show: seg(u, 0.77, 0.8), angle: a4, list: A4 };
+        break;
+      }
+      case 'hold4': {
+        O.piv.visible = true; O.site.visible = true; O.pivScrews.forEach((x) => (x.visible = true));
+        if (u < 0.66) {                                    // cut through both screw axes
+          cutPlane.normal.set(-N4[0], 0, N4[1]);
+          cutPlane.constant = lerp(120, N4[0] * HX + N4[1] * HY, seg(u, 0.02, 0.08));
+        }
+        showTags(O.h4.slice(0, 2), win(u, 0.08, 0.3));
+        showTags([O.h4[2]], win(u, 0.28, 0.44));
+        showTags([O.h4[3]], win(u, 0.42, 0.56));
+        glow(O.pivWasher, ACC[4], win(u, 0.42, 0.56));
+        showTags([O.h4[4]], win(u, 0.54, 0.66));
+        const d = seat(O.pivDevice, u, 0.72, 0.88); O.pivDevice.position.y = FACE_FRONT + 11.2 + d;
         break;
       }
       case 'adjust4': {
         O.site.visible = true; O.piv.visible = true; O.pivDevice.visible = true;
         O.pivScrews.forEach((x) => (x.visible = true));
         // loosen 2 turns (washer and screw drop 1.6 mm), swing to 15, tighten
-        const loose = seg(u, 0.04, 0.16) * (1 - seg(u, 0.74, 0.86));
+        const loose = seg(u, 0.04, 0.16) * (1 - seg(u, 0.78, 0.9));
         O.lockScrew.position.z = LOCK[2] - 1.6 * loose; O.pivWasher.position.z = -1.6 * loose;
-        O.lockScrew.rotation.z = -4 * Math.PI * seg(u, 0.04, 0.16) + 4 * Math.PI * seg(u, 0.74, 0.86);
-        a4 = clickThrough(seg(u, 0.3, 0.62), [9, 12, 15]);
-        glow(O.pivWasher, ACC[4], bumpy(u, 0.74, 0.92));
+        O.lockScrew.rotation.z = -4 * Math.PI * seg(u, 0.04, 0.16) + 4 * Math.PI * seg(u, 0.78, 0.9);
+        a4 = clickThrough(seg(u, 0.3, 0.64), [9, 12, 15]);
+        glow(O.pivWasher, ACC[4], win(u, 0.8, 0.96));
+        av = { opt: 4, a: a4, k: win(u, 0.24, 0.72) };
         ro = { show: 1, angle: a4, list: A4 };
         break;
       }
@@ -754,11 +1004,13 @@ code { font-family: var(--mono); font-size: 0.92em; }
         a2 = 15; a3 = 15; a4 = 15; pinAt(15, 0);
         const shells = [O.solidBlock, O.adjShell, O.sldShell, O.pivShell];
         O.rowLabels.forEach((l, i) => {
-          const k = s.id === 'row' ? bumpy(u, 0.1 + 0.2 * i, 0.32 + 0.2 * i) : 0;
+          const k = s.id === 'row' ? win(u, 0.1 + 0.2 * i, 0.32 + 0.2 * i, 0.06) : 0;
           l.visible = s.id === 'row' || u < 0.2;
           l.scale.set(14 * 6 * (1 + 0.35 * k), 14 * (1 + 0.35 * k), 1);
           glow(shells[i], ACC[i + 1], k);
         });
+        sketch = s.id === 'row' ? { mode: 'inset', alpha: seg(u, 0.02, 0.1) * 0.95, hi: {} }
+                                : { mode: 'side', alpha: seg(u, 0, 0.12), hi: {} };
         endCard = s.id === 'end' ? seg(u, 0.05, 0.25) : 0;
         break;
       }
@@ -778,10 +1030,11 @@ code { font-family: var(--mono); font-size: 0.92em; }
     // accent colour, blended from the previous scene's over 1.2 s
     let acc = ACC[s.acc];
     if (prev && blend < 1) acc = hexMix(ACC[prev.acc], acc, ease(blend));
+    angleView(av && av.opt, av ? av.a : 0, av ? av.k : 0, acc);
 
     const shown = ro.list.reduce((best, a) => Math.abs(a - ro.angle) < Math.abs(best - ro.angle) ? a : best, ro.list[0]);
-    return { id: s.id, cap: CAP[s.id], capShow: s.id === 'end' ? 1 - endCard : 1, readout: ro.show, deg: shown,
-             list: ro.list, endCard, accent: acc,
+    return { id: s.id, cap: CAP[s.id], capShow: s.id === 'end' ? 1 - endCard : (s.id === 'sketch' ? seg(u, 0.02, 0.06) : 1),
+             readout: ro.show, deg: shown, list: ro.list, endCard, accent: acc, sketch,
              sweepTop: hexMix('#eef0f1', acc, 0.1), sweepBottom: hexMix('#c9ced2', acc, 0.32) };
   }
 
@@ -789,6 +1042,10 @@ code { font-family: var(--mono); font-size: 0.92em; }
     const stage = $('stage');
     stage.style.background = `radial-gradient(120% 90% at 50% 20%, ${st.sweepTop}, ${st.sweepBottom})`;
     stage.style.setProperty('--accent', st.accent);
+    const sk = $('sk2d'), r = stage.getBoundingClientRect(), dpr = Math.min(window.devicePixelRatio || 1, 2);
+    if (sk.width !== Math.round(r.width * dpr)) { sk.width = Math.round(r.width * dpr); sk.height = Math.round(r.height * dpr); }
+    const sc = sk.getContext('2d'); sc.clearRect(0, 0, sk.width, sk.height);
+    drawSketch(sc, sk.width, sk.height, st.sketch);
     $('titleCard').style.opacity = t < 0.6 && !playing ? 1 : 0;
     $('endCard').style.opacity = st.endCard;
     $('caption').style.opacity = t < 0.6 && !playing ? 0 : st.capShow;
@@ -853,13 +1110,13 @@ code { font-family: var(--mono); font-size: 0.92em; }
     $('loading').hidden = true;
     if (RECORD) {
       // tools/record_video.js drives the timeline frame by frame
-      window.DEMO = { renderer, scene, cam, apply, S, DURATION,
+      window.DEMO = { renderer, scene, cam, apply, S, DURATION, drawSketch,
                       render: (time) => { const st = apply(time); renderer.render(scene, cam); return st; } };
       const s = document.createElement('script'); s.src = 'tools/record_video.js'; document.body.appendChild(s);
       return;
     }
     resize();
-    t = 6.5;                       // resting frame: the block rising out of the sketch
+    t = 30;                        // resting frame: the block with its dimensions
     overlays(apply(t)); renderer.render(scene, cam);
     if (!reduceMotion) { t = 0; setPlaying(true); }
     requestAnimationFrame(frame);
