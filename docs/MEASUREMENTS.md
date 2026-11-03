@@ -101,7 +101,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `screw_y` | 19.5 | scaled | distance from back face (position not fixed; size is shared) |
+| `screw_y` | 19.5 | scaled | distance from back face. The sketch centred it on the shallow side (19.1 at the old 46 depth); kept at 19.5 when the block went to 50 (Cat 2026-11-02) for ~7 mm of plastic below the pocket |
 | `screw_z` | [22, 88] | scaled | heights (kept, Cat 2026-11-02: lower would put the head bevel near the edge) |
 | `screw_head_recess` | 0 | chosen | extra counterbore depth to shorten screws |
 
