@@ -151,8 +151,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
 
   <div class="controls">
     <button class="btn" id="play" type="button">Play</button>
-    <input type="range" id="scrub" min="0" max="390" step="0.1" value="0" aria-label="Timeline">
-    <span class="time" id="time">0:00 / 6:30</span>
+    <input type="range" id="scrub" min="0" max="394" step="0.1" value="0" aria-label="Timeline">
+    <span class="time" id="time">0:00 / 6:34</span>
   </div>
   <div class="chips" id="chips"></div>
 
@@ -188,7 +188,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
   const WASHER_FACE = 53.7666;             // option 2: R_out + washer_t
   const CLAMP_NUT_R = 38;                  // option 2: clamp nut distance from the hinge axis
   const HINGE_NUT_Z = [12.4, 97.6];        // option 2: base_z0 + hinge_nut_in, base_z1 - hinge_nut_in
-  const SOLID_FACE_ANGLE = 8;
+  const SOLID_FACE_ANGLE = 8, SOLID_DEPTH = 50;   // option 1: face angle, depth at the deep side
   const SP = [26, -20], SLIDE_FACE = 62.4; // option 3: virtual pivot, face distance (shell frame)
   // option 3 lock holes: [angle, radius, shell angle] (pin_rows in option3-dovetail/option3_dovetail.scad)
   const PIN_HOLES = [[3, 44, 20], [7, 44, 6], [11, 44, -8], [15, 44, -22], [5, 34, 13], [9, 34, -1], [13, 34, -15]];
@@ -446,7 +446,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
   AV.group.renderOrder = 9;
   // option geometry for the view: pivot, face centre and half-width in the shell frame
   const AVOPT = {
-    1: { pivot: [27.5, 46 - 27.5 * Math.tan(8 * D2R)], fc: [0, 0], half: 27.5, fixed: true },
+    1: { pivot: [27.5, SOLID_DEPTH - 27.5 * Math.tan(SOLID_FACE_ANGLE * D2R)], fc: [0, 0], half: 27.5, fixed: true },
     2: { pivot: [HX, HY], fc: [21, 15], half: 27.5 },
     3: { pivot: SP, fc: [0, SLIDE_FACE], half: 27.5 },
     4: { pivot: [HX, HY], fc: [21, 15], half: 27.5 },
@@ -610,7 +610,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.solidDevice = device();
     {
       const a = SOLID_FACE_ANGLE * D2R, cx = 27.5;
-      const cy = 46 - cx * Math.tan(a);                 // face depth at the centre
+      const cy = SOLID_DEPTH - cx * Math.tan(a);        // face depth at the centre
       // place(d): seat the device d mm out along the face normal (0 = mounted)
       O.solidDevice.place = (d) => O.solidDevice.position.set(
         cx + Math.sin(a) * (11.2 + d), cy + Math.cos(a) * (11.2 + d), 55);
@@ -618,8 +618,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
       O.solidDevice.rotation.z = -a;
       const fy = cy + 1.5;                              // just in front of the face, for the dimensions
       O.dims = new THREE.Group();
-      O.dims.add(dim([0, 52, 122], [55, 44, 122], '55', [27.5, 50, 132]),
-                 dim([-12, 50, 0], [-12, 50, 110], '110', [-30, 50, 55]),
+      O.dims.add(dim([0, SOLID_DEPTH + 6, 122], [55, SOLID_DEPTH - 2, 122], '55', [27.5, SOLID_DEPTH + 4, 132]),
+                 dim([-12, SOLID_DEPTH + 4, 0], [-12, SOLID_DEPTH + 4, 110], '110', [-30, SOLID_DEPTH + 4, 55]),
                  dim([cx, fy, 9.25], [cx, fy, 100.75], '91.5', [cx + 20, fy + 2, 55]));
       O.solid.add(O.dims);
       // pilot-hole depth markers (12 mm into the face), shown in the "how it holds" beat
@@ -635,7 +635,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.t1 = [tag(O.solidBlock, 'Block', '1 printed part', [27, 23, 118], ACC[1]),
             tag(O.solidScrews[0], 'Wood screws × 2', '#8 flat head, 3 in', [24, 0, 16], ACC[1])];
     O.h1 = [tag(O.solid, 'Countersink, 82°', 'the head pulls the block tight', [70, 30, 34], ACC[1]),
-            tag(O.solid, 'Pilot holes, 12 mm deep', "for the camera's own screws", [27, 70, 112], ACC[1])];
+            tag(O.solid, 'Pilot holes, 12 mm deep', "for the camera's own screws", [27, 70, 112], ACC[1]),
+            tag(O.solid, 'Cable funnel', 'the wire bends gently into the pocket', [17, 70, 60], ACC[1])];
     world.add(O.solid);
 
     // Option 2
@@ -667,7 +668,8 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.h2 = [tag(O.nuts[1], 'Hinge nut', 'trapped by the mounting surface', [-30, 10, 14], ACC[2]),
             tag(O.clampNut, 'Clamp nut', 'trapped by the wall', [16, -8, 22], ACC[2]),
             tag(O.washer, 'Teeth carry the load', 'the bolt squeezes them together', [66, 0, 54], ACC[2]),
-            tag(O.adj, 'Washer track + curved slot', 'the washer sits here; the clamp bolt runs through the slot', [70, 40, 96], ACC[2], 9)];
+            tag(O.adj, 'Washer track + curved slot', 'the washer sits here; the clamp bolt runs through the slot', [70, 40, 96], ACC[2], 9),
+            tag(O.adj, 'Deep-edge lip', "hooks into a groove: side rain can't get behind the plate", [-30, 50, 70], ACC[2], 10)];
     world.add(O.adj);
 
     // Option 3 (the section plane applies to its printed parts)
@@ -703,7 +705,10 @@ code { font-family: var(--mono); font-size: 0.92em; }
     O.pivSlide.add(O.pivDevice);
     O.pivPivot.add(O.pivSlide);
     O.pivWasher = home(part(G.pivot_washer, MAT.lock, [cutPlane]));
-    O.pivotScrew = upScrew(20, 8.5, 5, 6); O.pivotScrew.position.set(HX, HY, 0); home(O.pivotScrew);
+    O.pivotScrew = new THREE.Group();                     // countersunk slotted M5, flush in the plate
+    { const g = new THREE.CylinderGeometry(2.5, 4.6, 2.1, 24); g.rotateX(Math.PI / 2); g.translate(0, 0, 1.05);
+      const head = new THREE.Mesh(g, MAT.steel); head.castShadow = true; O.pivotScrew.add(head, cyl(2.5, 20, MAT.steel)); }
+    O.pivotScrew.position.set(HX, HY, 0); home(O.pivotScrew);
     O.lockScrew = upScrew(20, 16, 5, 32); O.lockScrew.position.set(LOCK[0], LOCK[1], LOCK[2]); home(O.lockScrew);
     O.pivScrews = [25, 88].map((z) => { const s = woodScrew(75); s.position.set(49, 19.5, z); home(s); O.piv.add(s); return s; });
     O.piv.add(O.pivBase, O.pivPivot, O.pivWasher, O.pivotScrew, O.lockScrew);
@@ -717,7 +722,9 @@ code { font-family: var(--mono); font-size: 0.92em; }
             tag(O.piv, '10 mm of thread', 'lock screw, printed thread', [62, 26, 14], ACC[4], 12),
             tag(O.piv, 'Roof 0.4 mm above', 'the shell cannot rise', [30, 30, 122], ACC[4], 12),
             tag(O.piv, 'Curved slot + toothed track', "the lock screw passes through; the washer can't turn", [84, 30, -26], ACC[4], 9),
-            tag(O.piv, 'Nylon locking patch', 'on both screws', [-14, 34, -16], ACC[4], 12)];
+            tag(O.piv, 'Nylon locking patch', 'on both screws', [-14, 34, -16], ACC[4], 12),
+            tag(O.piv, 'Deep-edge lip', "keeps side rain out", [-26, 50, 70], ACC[4], 12),
+            tag(O.piv, 'Roof', 'covers the shell at every angle', [30, 40, 126], ACC[4], 12)];
     world.add(O.piv);
 
     // Install context: inside corner (side surface at x=0, wall at y=0) and the cable
@@ -754,12 +761,12 @@ code { font-family: var(--mono); font-size: 0.92em; }
     { id: 'slide',   t0: 172, t1: 220, chip: '3 · Dovetail',        acc: 3 },
     { id: 'hold3',   t0: 220, t1: 248, chip: '3 · How it holds',    acc: 3 },
     { id: 'pivot',   t0: 248, t1: 304, chip: '4 · Pivot',           acc: 4 },
-    { id: 'hold4',   t0: 304, t1: 338, chip: '4 · How it holds',    acc: 4 },
-    { id: 'adjust4', t0: 338, t1: 356, chip: '4 · Adjusting',       acc: 4 },
-    { id: 'row',     t0: 356, t1: 376, chip: 'Side by side',        acc: 'n' },
-    { id: 'end',     t0: 376, t1: 390, chip: 'The end',             acc: 'n' },
+    { id: 'hold4',   t0: 304, t1: 342, chip: '4 · How it holds',    acc: 4 },
+    { id: 'adjust4', t0: 342, t1: 360, chip: '4 · Adjusting',       acc: 4 },
+    { id: 'row',     t0: 360, t1: 380, chip: 'Side by side',        acc: 'n' },
+    { id: 'end',     t0: 380, t1: 394, chip: 'The end',             acc: 'n' },
   ];
-  const DURATION = 390;
+  const DURATION = 394;
 
   const CAP = {
     sketch:  { k: 'Where it started', t: 'From a sketch',
@@ -816,7 +823,7 @@ code { font-family: var(--mono); font-size: 0.92em; }
     hold1:   (u) => {
       let p = { p: [150, 120, 190], t: [35, 20, 15] };                            // above the section at screw height
       p = mix(p, orbit(80, 230, 80, 27, 30, 55), seg(u, 0.34, 0.42));            // the face, close
-      return mix(p, orbit(45, 340, 190, 35, 25, 60), seg(u, 0.62, 0.7));
+      return mix(p, orbit(45, 340, 190, 35, 25, 60), seg(u, 0.82, 0.88));
     },
     hinge:   (u) => mix(orbit(lerp(35, 75, u / 0.34), 340, 180, 45, 20, 50), OVER[2], seg(u, 0.33, 0.39)),
     hold2:   (u) => {
@@ -946,9 +953,10 @@ code { font-family: var(--mono); font-size: 0.92em; }
         clipPlane.constant = u < 0.36 ? lerp(112, 22, seg(u, 0, 0.08)) : 1000;   // section at the lower screw
         showTags([O.h1[0]], win(u, 0.06, 0.34));
         O.pilots.visible = u > 0.38 && u < 0.62; ghost(O.solidBlock, u > 0.38 && u < 0.62 ? 0.4 : 1);
-        showTags([O.h1[1]], win(u, 0.4, 0.62));
-        const d = seat(O.solidDevice, u, 0.66, 0.84); O.solidDevice.place(d);
-        step = stepAt([0.04, 0.38, 0.66]);
+        showTags([O.h1[1]], win(u, 0.4, 0.58));
+        showTags([O.h1[2]], win(u, 0.6, 0.82));
+        const d = seat(O.solidDevice, u, 0.84, 0.95); O.solidDevice.place(d);
+        step = stepAt([0.04, 0.38, 0.84]);
         ro = { show: seg(u, 0.84, 0.88), angle: 8, list: [8] };
         break;
       }
@@ -979,8 +987,9 @@ code { font-family: var(--mono); font-size: 0.92em; }
         off(O.washer, out, 40, 0, 0); off(O.clampBolt, Math.max(out, 1 - seg(u, 0.6, 0.68)), 70, 0, 0);
         showTags([O.h2[3]], win(u, 0.4, 0.58));
         glow(O.washer, ACC[2], win(u, 0.64, 0.76)); showTags([O.h2[2]], win(u, 0.64, 0.76));
-        const d = seat(O.adjDevice, u, 0.78, 0.92); O.adjDevice.position.y = FACE_FRONT + 11.2 + d;
-        step = stepAt([0.04, 0.36, 0.6, 0.78]);
+        showTags([O.h2[4]], win(u, 0.74, 0.9));
+        const d = seat(O.adjDevice, u, 0.88, 0.97); O.adjDevice.position.y = FACE_FRONT + 11.2 + d;
+        step = stepAt([0.04, 0.36, 0.6, 0.88]);
         break;
       }
       case 'slide': {
@@ -1060,9 +1069,10 @@ code { font-family: var(--mono); font-size: 0.92em; }
         O.pivWasher.position.z = -35 * drop; O.lockScrew.position.z = LOCK[2] - 55 * drop;
         showTags([O.h4[3]], win(u, 0.45, 0.62));
         glow(O.pivWasher, ACC[4], win(u, 0.64, 0.72));
-        showTags([O.h4[4]], win(u, 0.66, 0.78));
-        const d = seat(O.pivDevice, u, 0.8, 0.94); O.pivDevice.position.y = FACE_FRONT + 11.2 + d;
-        step = stepAt([0.04, 0.22, 0.4, 0.66, 0.8]);
+        showTags([O.h4[4]], win(u, 0.64, 0.76));
+        showTags([O.h4[5], O.h4[6]], win(u, 0.76, 0.9));
+        const d = seat(O.pivDevice, u, 0.88, 0.97); O.pivDevice.position.y = FACE_FRONT + 11.2 + d;
+        step = stepAt([0.04, 0.22, 0.4, 0.64, 0.88]);
         break;
       }
       case 'adjust4': {
