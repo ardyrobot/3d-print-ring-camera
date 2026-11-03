@@ -68,7 +68,12 @@ face_chamfer = 1.5;  // [chosen] matches the solid block
 skirt_end    = -15;  // [chosen] trailing edge angle of the skirt, shell frame (4.6 mm off the wall at 15)
 boss_d       = 8;    // [chosen] bosses behind the Ring holes
 drain_d      = 3.5;  // [chosen] drain hole in the bottom plate
-
+// Labyrinth at the deep edge (Cat, 2026-11-02): a lip on the back of the camera
+// plate's deep edge hooks into a curved groove in the base, so rain coming in
+// the slot between the plate edge and the mounting surface can't reach the
+// space behind the plate; it runs down and out at the bottom.
+deep_lip_t   = 1.5;  // [chosen] lip thickness
+deep_lip_len = 4;    // [chosen] how far the lip reaches back from the plate's back face
 /* [Base and roof] */
 roof_t        = 4;     // [chosen]
 roof_overhang = 1;     // [chosen] how far the roof reaches past the shell at its outermost, all round
@@ -114,6 +119,7 @@ R_base  = R_in - gap;                          // base cylinder radius
 skirt_start = atan2(face_front, face_x1);     // where the skirt meets the face
 base_z0 = plate_t + gap;
 roof_z  = height - roof_t;                     // roof underside
+deep_lip_groove_top = roof_z;                  // the lip's groove stops under the roof, so the roof stays whole
 shell_top = roof_z - roof_clr;
 base_front = face_back - swing_clr;            // base front, shell frame
 ring_x  = (face_x0 + face_x1) / 2;
@@ -183,6 +189,8 @@ module plate_2d() {
 module shell_body() {
     // camera plate
     translate([face_x0, face_back, 0]) cube([face_x1 - face_x0, face_t, shell_top]);
+    // labyrinth lip on the back of the plate's deep edge
+    translate([face_x0, face_back - deep_lip_len, 0]) cube([deep_lip_t, deep_lip_len + eps, shell_top]);
     // curved skirt
     linear_extrude(shell_top) sector(R_in, R_out, skirt_end, skirt_start);
     // bottom plate (the only hinge leaf; the roof covers the top)
@@ -319,6 +327,16 @@ module scale_marks() {
 
 // z0/z1 let the fit test cut a slice. The roof edge is the print-bed side
 // (the base prints roof-down), so that is where the foot chamfer goes.
+module deep_lip_2d() {
+    translate([face_x0 - gap, face_back - deep_lip_len - gap]) square([deep_lip_t + 2 * gap, deep_lip_len + 2 * gap]);
+}
+module deep_lip_groove() {
+    steps = [for (a = [angle_min : 0.5 : angle_max]) a];
+    // stops under the roof: the lip ends at shell_top, and the roof must stay whole
+    translate([0, 0, -1]) linear_extrude(deep_lip_groove_top + 1)
+        for (i = [0 : len(steps) - 2]) hull() { on_shell_2d(steps[i]) deep_lip_2d(); on_shell_2d(steps[i + 1]) deep_lip_2d(); }
+}
+
 module base(z0 = base_z0, z1 = height) {
     difference() {
         union() {
@@ -328,6 +346,10 @@ module base(z0 = base_z0, z1 = height) {
                 translate([0, 0, height - eps]) linear_extrude(eps) offset(delta = -foot_chamfer) roof_2d();
             }
         }
+
+        // groove for the labyrinth lip: everywhere it goes from angle_min to
+        // angle_max, plus the gap (half-degree steps, hulled)
+        deep_lip_groove();
 
         // wiring pocket, 15 mm behind the camera plate at the steepest angle
         on_shell(angle_max) translate([pocket_deep_inset - hinge_x, face_back - pocket_depth, pocket_z_min])
@@ -411,6 +433,11 @@ if (part == "assembly") {
     intersection() { base(); on_shell(assembly_angle) shell_local(); }
     intersection() { base(); washer_world(); }
     intersection() { on_shell(assembly_angle) shell_local(); washer_world(); }
+    // the roof must be whole: solid over its full outline (nothing cut through it)
+    difference() {
+        translate([0, 0, roof_z + 0.05]) linear_extrude(roof_t - foot_chamfer - 0.1) offset(delta = -0.05) roof_2d();
+        base();
+    }
     intersection() {
         union() { on_shell(assembly_angle) shell_local(); washer_world(); screw_heads(); }
         union() {

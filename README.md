@@ -516,10 +516,22 @@ all; they're tagged `[chosen]` in `docs/MEASUREMENTS.md`.
       slide below 3°, and at 1° the hole marked 11 happens to line up. Once
       mounted, the frame stops the shell at about 2°. Only use the holes
       between 3° and 15°.
-- [ ] **Adjustable: water.** A drain hole in the shell's bottom plate covers
-      water that gets in. At steep angles there is a gap of up to about 4 mm
-      between the shell's deep edge and the mounting surface. Check on site
-      whether rain gets in there.
+- [ ] **Options 2 and 4: deep-side slot and labyrinth.**
+      - **The slot:** as the shell turns, the camera plate's edge next to the
+        mounting surface swings away from it. The slot is 0.8 mm at 3°,
+        2.4 mm at 9° and 4.1 mm at 15° (calculated), full height.
+      - **The fix (Cat, 2026-11-02):** a 1.5 × 4 mm lip on the back of the
+        plate's deep edge hooks into a curved groove in the base. That's a
+        labyrinth: rain coming in the slot can't reach the space behind the
+        plate, and runs down and out at the bottom. It's rain-resistant, not
+        airtight; insects can still get into the slot itself.
+      - **Checked by the build:** the lip clears the groove at every angle.
+      - **Measured:** the lip reaches into the base at both range ends.
+        Option 4's groove leaves 4–5 mm of plastic around the pivot thread.
+        Option 2's groove leaves 2–3 mm from the hinge nut slots, which is
+        thin; check it on the fit test.
+
+      Check on site. *Gate: prototype.*
 - [ ] **Pivot: fit test.** Print `option4-pivot/stl/fit_test.stl` and check:
       - The M5 thumb screws thread in by hand (`thread_clr`). The 0.8 mm
         pitch is near the limit of a 0.4 mm nozzle. If the threads don't
@@ -550,12 +562,6 @@ all; they're tagged `[chosen]` in `docs/MEASUREMENTS.md`.
       corner nearest the mounting surface (calculated). Check that edge on the
       fit test. If it's weak, a slightly smaller head (ISO 7046 raised
       countersunk, or an 8 mm head) helps. *Gate: fit test.*
-- [ ] **Pivot: deep-side gap.** As the shell turns, the camera plate's edge
-      next to the mounting surface swings away from it. The slot is 0.8 mm
-      at 3°, 2.4 mm at 9° and 4.1 mm at 15° (calculated), full height, so wind
-      and insects can get in. Option 2 has the same gap. Proposed fix: a
-      self-adhesive closed-cell foam strip on the mounting surface, about
-      6 mm thick. *Gate: Cat's decision.*
 - [ ] **Pivot: water.** The roof covers the top. The teeth and slot face
       down, so water drains off. There's a drain in the bottom plate. Check
       on site for rain driven in at the deep edge.

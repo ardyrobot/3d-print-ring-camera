@@ -115,10 +115,10 @@ Source file: [`option2-hinge/option2_hinge.scad`](../option2-hinge/option2_hinge
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Base](../option2-hinge/stl/base.stl) | 52.76 × 39.35 × 101.20 | 148.92 | yes |
-| [Shell](../option2-hinge/stl/shell.stl) | 57.27 × 110.00 × 32.36 | 45.55 | yes |
+| [Base](../option2-hinge/stl/base.stl) | 52.76 × 39.35 × 101.20 | 147.69 | yes |
+| [Shell](../option2-hinge/stl/shell.stl) | 57.27 × 110.00 × 32.36 | 46.17 | yes |
 | [Washer](../option2-hinge/stl/washer.stl) | 14.00 × 13.20 × 4.52 | 0.64 | yes |
-| [Fit test (3 pieces, as laid out)](../option2-hinge/stl/fit_test.stl) | 78.50 × 78.00 × 32.36 | 32.24 | yes |
+| [Fit test (3 pieces, as laid out)](../option2-hinge/stl/fit_test.stl) | 78.50 × 78.00 × 32.36 | 32.15 | yes |
 
 ### Envelope
 
@@ -193,6 +193,8 @@ Source file: [`option2-hinge/option2_hinge.scad`](../option2-hinge/option2_hinge
 | `skirt_end` | -20 | chosen | trailing edge angle of the skirt, shell frame |
 | `boss_d` | 8 | chosen | bosses behind the Ring holes |
 | `drain_d` | 3.5 | chosen | drain hole in the bottom plate |
+| `deep_lip_t` | 1.5 | chosen | lip thickness |
+| `deep_lip_len` | 4 | chosen | how far the lip reaches back from the plate's back face |
 
 ### Hinge
 
@@ -364,10 +366,10 @@ Source file: [`option4-pivot/option4_pivot.scad`](../option4-pivot/option4_pivot
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Base (with roof)](../option4-pivot/stl/base.stl) | 58.27 × 47.18 × 103.60 | 156.15 | yes |
-| [Shell](../option4-pivot/stl/shell.stl) | 57.27 × 105.20 × 28.14 | 39.03 | yes |
+| [Base (with roof)](../option4-pivot/stl/base.stl) | 58.27 × 47.18 × 103.60 | 154.94 | yes |
+| [Shell](../option4-pivot/stl/shell.stl) | 57.27 × 105.20 × 28.14 | 39.63 | yes |
 | [Washer](../option4-pivot/stl/washer.stl) | 13.02 × 9.28 × 4.90 | 0.29 | yes |
-| [Fit test (3 pieces, as laid out)](../option4-pivot/stl/fit_test.stl) | 82.93 × 71.75 × 28.14 | 39.28 | yes |
+| [Fit test (3 pieces, as laid out)](../option4-pivot/stl/fit_test.stl) | 82.93 × 71.75 × 28.14 | 39.19 | yes |
 
 ### Envelope
 
@@ -444,6 +446,8 @@ Source file: [`option4-pivot/option4_pivot.scad`](../option4-pivot/option4_pivot
 | `skirt_end` | -15 | chosen | trailing edge angle of the skirt, shell frame (4.6 mm off the wall at 15) |
 | `boss_d` | 8 | chosen | bosses behind the Ring holes |
 | `drain_d` | 3.5 | chosen | drain hole in the bottom plate |
+| `deep_lip_t` | 1.5 | chosen | lip thickness |
+| `deep_lip_len` | 4 | chosen | how far the lip reaches back from the plate's back face |
 
 ### Base and roof
 

@@ -120,6 +120,9 @@ foreach ($a in 3, 6, 9, 12, 15) {
 }
 if (Clash $model @{ part = '\"clash\"'; assembly_angle = 4.5 }) { throw 'Option 4 lock accepted a half-tooth angle' }
 Write-Host 'option 4 half-tooth test: blocked'
+# The roof must be whole: a groove cut up through it must be caught
+if (Clash $model @{ part = '\"clash\"'; deep_lip_groove_top = 111 }) { throw 'Option 4 roof check cannot fail' }
+Write-Host 'option 4 roof-hole test: blocked'
 # The shell must slide up onto the base at the install angle, from any height
 foreach ($d in 2, 10, 30, 60, 95) {
     if (-not (Clash $model @{ part = '\"install\"'; install_drop = $d })) { throw "Option 4 shell jams $d mm below its seat" }

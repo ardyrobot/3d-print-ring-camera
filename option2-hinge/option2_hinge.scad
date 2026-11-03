@@ -59,6 +59,12 @@ face_chamfer = 1.5;  // [chosen] matches the solid block
 skirt_end    = -20;  // [chosen] trailing edge angle of the skirt, shell frame
 boss_d       = 8;    // [chosen] bosses behind the Ring holes
 drain_d      = 3.5;  // [chosen] drain hole in the bottom plate
+// Labyrinth at the deep edge (Cat, 2026-11-02; same as option 4): a lip on the
+// back of the camera plate's deep edge hooks into a curved groove in the base,
+// so rain coming in the slot between the plate edge and the mounting surface
+// can't reach the space behind the plate; it runs down and out at the bottom.
+deep_lip_t   = 1.5;  // [chosen] lip thickness
+deep_lip_len = 4;    // [chosen] how far the lip reaches back from the plate's back face
 
 /* [Hinge] */
 hinge_x      = 6.5;  // [chosen] axis distance from the mounting surface
@@ -145,6 +151,8 @@ module shell_teeth() {
 module shell_body() {
     // camera plate
     translate([face_x0, face_back, 0]) cube([face_x1 - face_x0, face_t, height]);
+    // labyrinth lip on the back of the plate's deep edge
+    translate([face_x0, face_back - deep_lip_len, 0]) cube([deep_lip_t, deep_lip_len + eps, height]);
     // curved skirt
     linear_extrude(height) sector(R_in, R_out, skirt_end, skirt_start);
     // top and bottom plates (the hinge leaves)
@@ -258,6 +266,15 @@ module scale_marks() {
     }
 }
 
+module deep_lip_2d() {
+    translate([face_x0 - gap, face_back - deep_lip_len - gap]) square([deep_lip_t + 2 * gap, deep_lip_len + 2 * gap]);
+}
+module deep_lip_groove() {
+    steps = [for (a = [angle_min : 0.5 : angle_max]) a];
+    translate([0, 0, -1]) linear_extrude(height + 2)
+        for (i = [0 : len(steps) - 2]) hull() { on_shell_2d(steps[i]) deep_lip_2d(); on_shell_2d(steps[i + 1]) deep_lip_2d(); }
+}
+
 // z0/z1 let the fit test cut a slice; the bottom edge (print bed side) is
 // chamfered by foot_chamfer. base_2d is convex, so a hull makes the chamfer.
 module base(z0 = base_z0, z1 = base_z1) {
@@ -266,6 +283,10 @@ module base(z0 = base_z0, z1 = base_z1) {
             translate([0, 0, z0]) linear_extrude(eps) offset(delta = -foot_chamfer) base_2d();
             translate([0, 0, z0 + foot_chamfer]) linear_extrude(z1 - z0 - foot_chamfer) base_2d();
         }
+
+        // groove for the labyrinth lip: everywhere it goes from angle_min to
+        // angle_max, plus the gap (half-degree steps, hulled)
+        deep_lip_groove();
 
         // wiring pocket, 15 mm behind the camera plate at the steepest angle
         on_shell(angle_max) translate([pocket_deep_inset - hinge_x, face_back - pocket_depth, pocket_z_min])
