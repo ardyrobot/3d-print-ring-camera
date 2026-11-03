@@ -67,6 +67,8 @@ Back face (cable entry): [option1-solid/docs/block-back.png](option1-solid/docs/
     pocket floor: it flares on the top and sides, and stops at the floor
     instead of cutting into it. The build checks that. Its rim has a 1.5 mm
     45° chamfer (`cable_mouth_chamfer`), so the wire meets no sharp edge.
+    The rim lies flat on the pocket wall, centred on the hole, and follows
+    `face_angle`, so it stays centred at any angle.
   - **Screws:** stay 19.5 mm from the back.
 - **Checked by `build.ps1`:**
   - The pocket and the funnel keep at least 4 mm of plastic around both

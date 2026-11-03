@@ -27,7 +27,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Block](../option1-solid/stl/block.stl) | 55.00 × 49.79 × 110.00 | 257.06 | yes |
+| [Block](../option1-solid/stl/block.stl) | 55.00 × 49.79 × 110.00 | 257.10 | yes |
 
 ### Envelope
 

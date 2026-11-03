@@ -110,19 +110,37 @@ module cable_hole() {
         cylinder(d = cable_d, h = depth_shallow);
 }
 
-// Funnel from the cable hole into the pocket. The pocket's back wall is square to
-// the camera face, so find where the cable's axis meets it, then widen the hole
-// over cable_flare_len up to that wall (and keep widening into the open pocket).
+// Funnel from the cable hole into the pocket. The pocket's back wall is parallel
+// to the camera face, so it is tilted face_angle to the hole. The funnel is a
+// blend (hull) between two circles: the cable hole, square to the hole and
+// cable_flare_len back from the wall, and the mouth, lying flat on the wall and
+// centred on the point where the hole's axis comes out. Both follow face_angle,
+// so the rim stays centred on the hole for any angle.
+module disc(d) linear_extrude(0.01) circle(d = d);       // thin circle facing +Z
+
+// The cable axis meets the wall here, in the camera-face frame (on_face)
+function cable_exit_local() = let (
+    wall_y = depth_deep - cable_deep_inset * tan(face_angle) - block_pocket_depth / cos(face_angle),
+    dx = cable_deep_inset - face_x0, dy = wall_y - face_y0)
+    [dx * cos(face_angle) - dy * sin(face_angle), dx * sin(face_angle) + dy * cos(face_angle)];
+
 module cable_flare() {
     wall_y = depth_deep - cable_deep_inset * tan(face_angle) - block_pocket_depth / cos(face_angle);
+    e = cable_exit_local();                               // e[1] is -block_pocket_depth: on the wall
+    c = cable_mouth_chamfer;
+    grow = (cable_flare_d - cable_d) / 2 / cable_flare_len;   // funnel radius gained per mm
+    module on_wall(off) on_face() translate([e[0], e[1] + off, cable_z]) rotate([-90, 0, 0]) children();
     intersection() {
-        translate([cable_deep_inset, wall_y - cable_flare_len, cable_z]) rotate([-90, 0, 0]) {
-            cylinder(d1 = cable_d, d2 = cable_flare_d, h = cable_flare_len);
-            // 45 degree chamfer on the rim, ending at the wall
-            c = cable_mouth_chamfer;
-            if (c > 0) translate([0, 0, cable_flare_len - c])
-                cylinder(d1 = cable_flare_d, d2 = cable_flare_d + 2 * c, h = c);
-            translate([0, 0, cable_flare_len - eps]) cylinder(d = cable_flare_d + 2 * c, h = 3);   // into the open pocket
+        union() {
+            hull() {                                      // the funnel
+                translate([cable_deep_inset, wall_y - cable_flare_len, cable_z]) rotate([-90, 0, 0]) disc(cable_d);
+                on_wall(0) disc(cable_flare_d);
+            }
+            if (c > 0) hull() {                           // 45 degree chamfer on the rim, square to the wall
+                on_wall(-c) disc(cable_flare_d - 2 * grow * c);
+                on_wall(0) disc(cable_flare_d + 2 * c);
+            }
+            on_wall(-eps) cylinder(d = cable_flare_d + 2 * c, h = 3);   // on into the open pocket
         }
         // trimmed flat at the pocket floor: flares up and sideways, never down into the floor
         translate([-1, -1, cable_flare_floor]) cube([width + 2, depth_deep + 2, height]);
