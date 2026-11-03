@@ -364,7 +364,7 @@ Source file: [`option4-pivot/option4_pivot.scad`](../option4-pivot/option4_pivot
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Base (with roof)](../option4-pivot/stl/base.stl) | 57.27 × 45.32 × 103.60 | 154.62 | yes |
+| [Base (with roof)](../option4-pivot/stl/base.stl) | 58.27 × 47.18 × 103.60 | 156.15 | yes |
 | [Shell](../option4-pivot/stl/shell.stl) | 57.27 × 105.20 × 28.14 | 39.03 | yes |
 | [Washer](../option4-pivot/stl/washer.stl) | 13.02 × 9.28 × 4.90 | 0.29 | yes |
 | [Fit test (3 pieces, as laid out)](../option4-pivot/stl/fit_test.stl) | 82.93 × 71.75 × 28.14 | 39.28 | yes |
@@ -450,6 +450,7 @@ Source file: [`option4-pivot/option4_pivot.scad`](../option4-pivot/option4_pivot
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
 | `roof_t` | 4 | chosen |  |
+| `roof_overhang` | 1 | chosen | how far the roof reaches past the shell at its outermost, all round |
 | `hinge_x` | 6.5 | chosen | pivot axis distance from the mounting surface |
 | `hinge_y` | 30 | chosen | pivot axis distance from the back face |
 | `screw_y` | 19.5 | scaled | distance from back face (position not fixed; size is shared) |

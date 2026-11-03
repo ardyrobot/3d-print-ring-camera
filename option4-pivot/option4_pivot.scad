@@ -71,6 +71,7 @@ drain_d      = 3.5;  // [chosen] drain hole in the bottom plate
 
 /* [Base and roof] */
 roof_t        = 4;     // [chosen]
+roof_overhang = 1;     // [chosen] how far the roof reaches past the shell at its outermost, all round
 hinge_x       = 6.5;   // [chosen] pivot axis distance from the mounting surface
 hinge_y       = 30;    // [chosen] pivot axis distance from the back face
 screw_y       = 19.5;  // [scaled] distance from back face (position not fixed; size is shared)
@@ -290,21 +291,17 @@ module shell_2d() {
     }
 }
 
+// Roof: covers the shell at every angle, so rain can't fall into it (Cat,
+// 2026-11-02). It therefore overhangs the camera face at steep angles (up to
+// about 10 mm at the shallow end at 15 degrees), like a visor above the camera;
+// the Ring is smaller than the face, so it stays below the roof.
 module roof_2d() {
     intersection() {
-        square([width + 20, 200]);
-        hull() {
+        square([width + 20, 200]);                        // clear of the mounting surface and the wall
+        offset(delta = roof_overhang) hull() {
             base_2d();
-            on_shell_2d(angle_min) shell_2d();
-            on_shell_2d(install_angle) shell_2d();
-            on_shell_2d(angle_max) shell_2d();
+            for (a = [angle_min : angle_step : angle_max]) on_shell_2d(a) shell_2d();
         }
-        // written out, not a for() (see base_2d)
-        on_shell_2d(angle_min) translate([-200, -400]) square([400, 400 + face_front]);
-        on_shell_2d(6) translate([-200, -400]) square([400, 400 + face_front]);
-        on_shell_2d(install_angle) translate([-200, -400]) square([400, 400 + face_front]);
-        on_shell_2d(12) translate([-200, -400]) square([400, 400 + face_front]);
-        on_shell_2d(angle_max) translate([-200, -400]) square([400, 400 + face_front]);
     }
 }
 

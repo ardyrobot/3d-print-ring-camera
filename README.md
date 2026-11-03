@@ -234,8 +234,10 @@ be blocked. That second test proves the check can fail.
 (viewing only; print the parts below).
 
 **How it works.** The **base** screws to the surface first, with nothing in
-the way. Its top is a **roof** that overhangs the shell at every angle, so
-rain can't get in from above. The **shell** carries the Ring. It slides up
+the way. Its top is a **roof** that covers the shell at every angle, so rain
+can't get in from above. At steep angles it overhangs the camera face like a
+small visor (up to about 11 mm at the shallow end at 15°). The Ring is
+smaller than the face, so it stays below the roof. The **shell** carries the Ring. It slides up
 from below at 9° (the Ring bosses pass up a channel in the base) until it
 sits under the roof. An M5 countersunk slotted screw from below, the
 **pivot screw**, goes through the shell's bottom plate into a thread in the
@@ -439,8 +441,11 @@ all; they're tagged `[chosen]` in `docs/MEASUREMENTS.md`.
       the washer track inside the plate. *Cat, 2026-11-02.*
 - [x] Option 4: lower mounting screw at 25 mm (options 1 and 2: 22), to clear
       the lock thread. *Cat, 2026-11-02.*
-- [ ] Option 4: a 1.3 mm sliver of the camera plate's top edge sticks out past
-      the roof at 15° (reported; also an open item).
+- [x] Option 4: the roof covers the shell at every angle and overhangs the
+      camera face at steep angles. *Cat, 2026-11-02.* The first version
+      trimmed the roof to stay behind the face, which left the shell's top
+      open at 3° (244 mm², about 10 mm wide at the shallow end). That gap
+      was reported only as a 1.3 mm sliver, which was wrong.
 
 ## Open items
 
@@ -545,10 +550,12 @@ all; they're tagged `[chosen]` in `docs/MEASUREMENTS.md`.
       corner nearest the mounting surface (calculated). Check that edge on the
       fit test. If it's weak, a slightly smaller head (ISO 7046 raised
       countersunk, or an 8 mm head) helps. *Gate: fit test.*
-- [ ] **Pivot: roof edge.** At 15° a sliver (about 1.3 mm) of the camera
-      plate's top edge at the deep corner sticks out past the roof. The roof
-      can't cover it there without sticking out in front of the face at 3°.
-      Minor, since the Ring covers the face. Check on site.
+- [ ] **Pivot: deep-side gap.** As the shell turns, the camera plate's edge
+      next to the mounting surface swings away from it. The slot is 0.8 mm
+      at 3°, 2.4 mm at 9° and 4.1 mm at 15° (calculated), full height, so wind
+      and insects can get in. Option 2 has the same gap. Proposed fix: a
+      self-adhesive closed-cell foam strip on the mounting surface, about
+      6 mm thick. *Gate: Cat's decision.*
 - [ ] **Pivot: water.** The roof covers the top. The teeth and slot face
       down, so water drains off. There's a drain in the bottom plate. Check
       on site for rain driven in at the deep edge.
