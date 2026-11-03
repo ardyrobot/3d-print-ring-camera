@@ -8,10 +8,11 @@
 //     Its top is a ROOF (water cap) that overhangs the shell at every angle.
 //   - The SHELL carries the Ring. It slides up from below at the install angle
 //     (Ring bosses pass up a channel in the base) until it sits under the roof.
-//   - An M5 stainless socket-head screw from below (the PIVOT SCREW) goes
-//     through the shell's bottom plate into a thread in the base, on the hinge
-//     axis. (A thumb screw head would hit the mounting surface: the axis is
-//     only 6.5 mm from it. Adjusting never touches this screw.)
+//   - An M5 stainless countersunk slotted screw from below (the PIVOT SCREW)
+//     goes through the shell's bottom plate into a thread in the base, on the
+//     hinge axis. Its head sits flush in a 90 degree countersink in the plate
+//     (Cat, 2026-11-02): nothing sticks out to hit the mounting surface (the
+//     axis is only 6.5 mm from it). Adjusting never touches this screw.
 //   - A second M5 thumb screw (the LOCK SCREW) goes up through a printed toothed
 //     WASHER and a curved slot in the bottom plate into a second thread in the
 //     base. Tightening it pulls the washer's teeth into teeth on the plate's
@@ -90,7 +91,8 @@ washer_t    = 4;    // [chosen] washer body thickness below the teeth
 thread_p       = 0.8;  // [chosen] M5 coarse pitch
 pivot_thread_l = 15;   // [chosen] thread depth into the base (M5 x 20 screw engages ~13.6)
 lock_thread_l  = 12;   // [chosen] thread depth into the base (M5 x 20 screw engages ~10.4)
-pivot_head_d   = 8.5;  // [chosen] M5 socket-head cap screw (ISO 4762)
+pivot_head_d   = 9.2;  // [chosen] M5 countersunk slotted screw head (ISO 2009), 90 degrees, flush in the plate (Cat 2026-11-02)
+pivot_sink_clr = 0.4;  // [chosen] countersink oversize so the head can sit flush
 lock_head_d    = 16;   // [chosen] M5 knurled thumb screw head, typical (check the one you buy)
 
 /* [Scale] */
@@ -229,8 +231,10 @@ module shell_local() {
             translate(concat(lock_local(slot_a[i]), [-1])) cylinder(d = screw_clr_d, h = plate_t + 2);
             translate(concat(lock_local(slot_a[i + 1]), [-1])) cylinder(d = screw_clr_d, h = plate_t + 2);
         }
-        // pivot screw hole
+        // pivot screw hole, with a 90 degree countersink so the head sits flush
         translate([0, 0, -1]) cylinder(d = screw_clr_d, h = plate_t + 2);
+        translate([0, 0, -eps]) cylinder(d1 = pivot_head_d + pivot_sink_clr, d2 = 0,
+                                         h = (pivot_head_d + pivot_sink_clr) / 2);
         // Ring holes
         for (z = ring_z) translate([ring_x, face_front + eps, z]) rotate([90, 0, 0])
             cylinder(d = ring_hole_d, h = ring_hole_depth + eps);
@@ -366,15 +370,17 @@ module base(z0 = base_z0, z1 = height) {
 }
 
 // Screws (not printed): assembly view, and the heads count in the clash check.
-// The pivot is a socket-head cap screw: the axis is only hinge_x from the
-// mounting surface, too close for a thumb screw head, and adjusting never
-// touches it. The lock is a thumb screw.
+// The pivot is a countersunk screw, flush inside the plate; the lock is a
+// thumb screw below the washer.
 module screw_heads(shank = false) {
-    for (s = [[[0, 0], 0, pivot_head_d], [lock_r * [cos(lock_a), sin(lock_a)], washer_z0 - washer_t, lock_head_d]])
-        translate([hinge_x + s[0][0], hinge_y + s[0][1], s[1]]) {
-            translate([0, 0, -5]) cylinder(d = s[2], h = 5);
-            if (shank) cylinder(d = 5, h = 20 - 0.01);
-        }
+    translate([hinge_x, hinge_y, 0]) {                    // pivot: flush countersunk head
+        cylinder(d1 = pivot_head_d, d2 = 5, h = (pivot_head_d - 5) / 2);
+        if (shank) cylinder(d = 5, h = 20 - 0.01);
+    }
+    translate(concat([hinge_x, hinge_y] + lock_r * [cos(lock_a), sin(lock_a)], [washer_z0 - washer_t])) {
+        translate([0, 0, -5]) cylinder(d = lock_head_d, h = 5);
+        if (shank) cylinder(d = 5, h = 20 - 0.01);
+    }
 }
 
 // ================= OUTPUT =================

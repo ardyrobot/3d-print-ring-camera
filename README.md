@@ -61,18 +61,21 @@ Back face (cable entry): [option1-solid/docs/block-back.png](option1-solid/docs/
   `option1-solid/prints/block.scad` · STL `option1-solid/stl/block.stl`.
 - **Sizes (Cat, 2026-11-02):**
   - **Block:** 50 mm deep at the mounting side (the sketch scaled to 46).
-  - **Wiring pocket:** 17 mm deep. Options 2–4 keep 15 mm.
+  - **Wiring pocket:** its back wall is parallel to the block's back, as the
+    sketch drew it. It's 17 mm deep at its shallowest point, growing to about
+    21.9 mm at the deep side (calculated). Options 2–4 keep a 15 mm pocket
+    parallel to the face.
   - **Cable hole:** opens into the pocket through a funnel that widens from
     8 to 15 mm, so the wire bends gently. The funnel is trimmed flat at the
     pocket floor: it flares on the top and sides, and stops at the floor
     instead of cutting into it. The build checks that. Its rim has a 1.5 mm
     45° chamfer (`cable_mouth_chamfer`), so the wire meets no sharp edge.
-    The rim lies flat on the pocket wall, centred on the hole, and follows
-    `face_angle`, so it stays centred at any angle.
+    The pocket wall is square to the cable hole, so the funnel's rim is
+    centred on the hole at any face angle.
   - **Screws:** stay 19.5 mm from the back.
 - **Checked by `build.ps1`:**
   - The pocket and the funnel keep at least 4 mm of plastic around both
-    screw holes (about 7 mm as built).
+    screw holes (5.5–6 mm as built, measured by the check).
   - The funnel doesn't cut into the pocket floor.
   - A must-fail test for each proves the check can fail.
 - **Tinkercad:** Import (top right) → choose `option1-solid/stl/block.stl` → units mm.
@@ -234,11 +237,11 @@ be blocked. That second test proves the check can fail.
 the way. Its top is a **roof** that overhangs the shell at every angle, so
 rain can't get in from above. The **shell** carries the Ring. It slides up
 from below at 9° (the Ring bosses pass up a channel in the base) until it
-sits under the roof. An M5 socket-head screw from below, the **pivot
-screw**, goes through the shell's bottom plate into a thread in the base on
-the hinge axis. It's not a thumb screw because the axis is only 6.5 mm from
-the mounting surface, too close for a thumb-screw head. Adjusting never
-touches it.
+sits under the roof. An M5 countersunk slotted screw from below, the
+**pivot screw**, goes through the shell's bottom plate into a thread in the
+base on the hinge axis. Its head sits flush in the plate, so nothing sticks
+out near the mounting surface, which is only 6.5 mm from the axis. Adjusting
+never touches it.
 A second M5 thumb screw, the **lock screw**, goes up through a printed
 **toothed washer** and a curved slot in the bottom plate into another thread
 in the base. Tightening it pulls the washer's teeth into teeth on the plate's
@@ -260,7 +263,7 @@ on the base (3, 9, 15, with ticks every 3°).
 
 **Hardware (stainless, A2 or A4):**
 
-- 1× M5 × 20 socket-head cap screw (ISO 4762, 8.5 mm head): pivot
+- 1× M5 × 20 countersunk slotted screw (ISO 2009, 90°, 9.2 mm head): pivot. It sits flush in the shell's bottom plate.
 - 1× M5 × 20 knurled thumb screw: lock. The model allows a head up to
   16 mm (`lock_head_d`); check the one you buy.
 - Buy both M5 screws **with a nylon locking patch** (chosen by Cat): a
@@ -281,7 +284,7 @@ still has about 8.8 mm.
 2. Turn the shell to 9° and slide it up onto the base from below, until it
    stops under the roof.
 3. Fit the pivot screw up through the hole at the shell's deep corner and
-   tighten it snug with a 4 mm hex key.
+   tighten it snug with a flat screwdriver. The head sits flush.
 4. Turn the shell to the angle you want. Put the washer in its track, teeth
    up, and fit the lock screw through it and the slot. Tighten.
 5. Wire the Ring through the window in the shell's camera plate, then screw
@@ -377,8 +380,67 @@ edit the `.scad` file and rebuild; don't edit the table.
   wall, inferred because the cable enters through the back. The designs rely
   on it in a few places: the wall shares the load, option 2's clamp nut is held
   in its slot by the wall, and option 3's hoods are trimmed to clear the wall.
-- The pocket floor is parallel to the camera face, so the Ring's back gets the
-  same clearance everywhere. The sketch drew it parallel to the back wall.
+- The sketch drew the pocket's back wall parallel to the block's back wall.
+  Option 1 follows that (Cat, 2026-11-02). Options 2–4 have it parallel to
+  the camera face, so the Ring's back gets the same clearance everywhere.
+
+### Departures from the sketch (confirm each)
+
+Every place a model differs from the hand sketch, or reads something the
+sketch leaves open. **Checked** = Cat decided or confirmed (date). **Unchecked**
+= a decision Claude made or reported only after the fact; it stays open until
+Cat confirms or changes it. Audit of 2026-11-02. Design values that only exist
+in options 2–4 (hinge positions, teeth, tolerances) aren't on the sketch at
+all; they're tagged `[chosen]` in `docs/MEASUREMENTS.md`.
+
+**Shared by all options and option 1:**
+
+- [x] Camera face angle 8° (the sketch has "?°"). *Cat.*
+- [x] 1.5 mm bevel on the camera-face edges. *Cat.*
+- [x] #8 flat (bevel) head mounting screws, 82° countersink. *Cat.*
+- [x] Back face against a wall (the sketch doesn't say). *Cat accepted the
+      assumption; still to confirm with the client (see open items).*
+- [x] Option 1 block 50 mm deep at the deep side (the sketch scales to 46).
+      *Cat, 2026-11-02.*
+- [x] Option 1 pocket: 17 mm at its shallowest point (the sketch has
+      "Depth ?"), with its back wall parallel to the block's back as drawn.
+      *Cat, 2026-11-02.*
+- [x] Option 1 cable funnel: 15 mm, 1.5 mm rim chamfer, flat at the floor (not
+      on the sketch). *Cat, 2026-11-02.*
+- [x] Option 1 screws at 22 and 88 mm up, 19.5 mm from the back (measured off
+      the sketch; kept). *Cat, 2026-11-02.*
+- [x] **Deep side against the mounting surface**, countersinks on the shallow
+      side (Claude's reading of the sketch's views). *Cat, 2026-11-02.*
+- [x] **Ring pilot holes 12 mm deep** (`ring_hole_depth`; the sketch gives
+      only the 2.25 mm diameter). *Cat, 2026-11-02.*
+- [x] **Screw hole sizes.** The sketch's small side-view mark is the screw
+      shank, about 4 mm in diameter. The model's 4.6 mm clearance hole fits a
+      #8 shank (4.17 mm). *Cat, 2026-11-02.* Measuring a real screw is still
+      an open item.
+- [x] **Pocket side walls square to the camera face**, as the sketch shows. The
+      face has to keep the spec-sheet dimensions. *Cat, 2026-11-02.*
+- [x] **Cable hole straight back**, square to the back face, 35 mm up and 17 mm
+      from the deep side (measured off the sketch). *Cat, 2026-11-02.*
+
+**Options 2–4:**
+
+- [x] Option 2: M4 hardware, 2° steps. *Cat.*
+- [x] Option 3: all-printed dovetail, screws 13 mm from the back. *Cat.*
+- [x] Option 4: 3° steps, bottom slot and toothed washer lock, nylon-patch
+      screws. *Cat.*
+- [ ] Options 2–4: pocket back wall parallel to the camera face, not to the
+      block's back as drawn, and 15 mm deep. *Cat: leave for now (2026-11-02);
+      decide later.*
+- [x] Option 2: mounting screws seat 40 mm into the base (65 mm screws).
+      *Cat, 2026-11-02.*
+- [x] Option 4: the pivot is a countersunk slotted screw, flush in the plate.
+      A thumb-screw head would hit the mounting surface. *Cat, 2026-11-02.*
+- [x] Option 4: lock screw 35 mm from the pivot (the mock-up showed 40), to keep
+      the washer track inside the plate. *Cat, 2026-11-02.*
+- [x] Option 4: lower mounting screw at 25 mm (options 1 and 2: 22), to clear
+      the lock thread. *Cat, 2026-11-02.*
+- [ ] Option 4: a 1.3 mm sliver of the camera plate's top edge sticks out past
+      the roof at 15° (reported; also an open item).
 
 ## Open items
 
@@ -478,6 +540,11 @@ edit the `.scad` file and rebuild; don't edit the table.
       screw, or add a stainless wave washer under its head. That needs about
       1 mm more room under the head, then a clash re-check.
       *Gate: prototype.*
+- [ ] **Pivot: countersink near the plate edge.** The flush pivot screw's
+      countersink comes within about 1.2 mm of the bottom plate's edge at the
+      corner nearest the mounting surface (calculated). Check that edge on the
+      fit test. If it's weak, a slightly smaller head (ISO 7046 raised
+      countersunk, or an 8 mm head) helps. *Gate: fit test.*
 - [ ] **Pivot: roof edge.** At 15° a sliver (about 1.3 mm) of the camera
       plate's top edge at the deep corner sticks out past the roof. The roof
       can't cover it there without sticking out in front of the face at 3°.

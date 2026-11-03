@@ -29,9 +29,12 @@ part = "block";   // [block, clash] clash = screw-wall check, must render empty
 
 /* [Pocket] */
 // Option 1 only (Cat, 2026-11-02): deeper than the shared pocket_depth (15 mm,
-// still used by options 2-4) for room for the wires. 20 mm put the pocket over
-// the lower screw with 5.7 mm of plastic between; 17 mm keeps it in front of it.
-block_pocket_depth = 17;   // [chosen] behind the camera face, measured square to the face
+// still used by options 2-4) for room for the wires. The pocket's back wall is
+// parallel to the block's back wall, as the sketch drew it (options 2-4 keep
+// theirs parallel to the face), so the depth grows toward the deep side; this
+// is the depth at its shallowest point, square to the face, at the pocket's
+// shallow-side edge.
+block_pocket_depth = 17;   // [chosen] shallowest depth behind the camera face
 
 /* [Cable hole flare] */
 // A funnel where the cable hole opens into the pocket, so the wire bends gently
@@ -96,12 +99,21 @@ module ring_holes() {
             cylinder(d = ring_hole_d, h = ring_hole_depth + eps);
 }
 
+// Pocket back wall: a plane parallel to the block's back (constant Y), placed so
+// the pocket's shallow-side corner is block_pocket_depth behind the face
+function pocket_wall_y() = let (u1 = face_u(pocket_deep_inset + pocket_width))
+    face_y0 - u1 * sin(face_angle) - block_pocket_depth * cos(face_angle);
+
 module pocket() {
     u0 = face_u(pocket_deep_inset);
     u1 = face_u(pocket_deep_inset + pocket_width);
-    // Extra +Y so the cut clears the face completely
-    on_face() translate([u0, -block_pocket_depth, pocket_z_min])
-        cube([u1 - u0, block_pocket_depth + 5, pocket_z_max - pocket_z_min]);
+    // sides square to the face (as before), back cut flat at pocket_wall_y();
+    // extra +Y so the cut clears the face completely
+    intersection() {
+        on_face() translate([u0, -depth_deep, pocket_z_min])
+            cube([u1 - u0, depth_deep + 5, pocket_z_max - pocket_z_min]);
+        translate([-1, pocket_wall_y(), pocket_z_min - 1]) cube([width + 2, depth_deep, pocket_z_max - pocket_z_min + 2]);
+    }
 }
 
 module cable_hole() {
@@ -110,37 +122,22 @@ module cable_hole() {
         cylinder(d = cable_d, h = depth_shallow);
 }
 
-// Funnel from the cable hole into the pocket. The pocket's back wall is parallel
-// to the camera face, so it is tilted face_angle to the hole. The funnel is a
-// blend (hull) between two circles: the cable hole, square to the hole and
-// cable_flare_len back from the wall, and the mouth, lying flat on the wall and
-// centred on the point where the hole's axis comes out. Both follow face_angle,
-// so the rim stays centred on the hole for any angle.
+// Funnel from the cable hole into the pocket. The pocket's back wall is square to
+// the hole (both run along Y), so the funnel is a plain round blend (hull) from
+// the hole's circle, cable_flare_len back, to the mouth circle on the wall,
+// centred on the hole.
 module disc(d) linear_extrude(0.01) circle(d = d);       // thin circle facing +Z
 
-// The cable axis meets the wall here, in the camera-face frame (on_face)
-function cable_exit_local() = let (
-    wall_y = depth_deep - cable_deep_inset * tan(face_angle) - block_pocket_depth / cos(face_angle),
-    dx = cable_deep_inset - face_x0, dy = wall_y - face_y0)
-    [dx * cos(face_angle) - dy * sin(face_angle), dx * sin(face_angle) + dy * cos(face_angle)];
-
 module cable_flare() {
-    wall_y = depth_deep - cable_deep_inset * tan(face_angle) - block_pocket_depth / cos(face_angle);
-    e = cable_exit_local();                               // e[1] is -block_pocket_depth: on the wall
     c = cable_mouth_chamfer;
     grow = (cable_flare_d - cable_d) / 2 / cable_flare_len;   // funnel radius gained per mm
-    module on_wall(off) on_face() translate([e[0], e[1] + off, cable_z]) rotate([-90, 0, 0]) children();
+    module at(y) translate([cable_deep_inset, y, cable_z]) rotate([-90, 0, 0]) children();
+    w = pocket_wall_y();
     intersection() {
         union() {
-            hull() {                                      // the funnel
-                translate([cable_deep_inset, wall_y - cable_flare_len, cable_z]) rotate([-90, 0, 0]) disc(cable_d);
-                on_wall(0) disc(cable_flare_d);
-            }
-            if (c > 0) hull() {                           // 45 degree chamfer on the rim, square to the wall
-                on_wall(-c) disc(cable_flare_d - 2 * grow * c);
-                on_wall(0) disc(cable_flare_d + 2 * c);
-            }
-            on_wall(-eps) cylinder(d = cable_flare_d + 2 * c, h = 3);   // on into the open pocket
+            hull() { at(w - cable_flare_len) disc(cable_d); at(w) disc(cable_flare_d); }      // the funnel
+            if (c > 0) hull() { at(w - c) disc(cable_flare_d - 2 * grow * c); at(w) disc(cable_flare_d + 2 * c); }   // 45 degree rim chamfer
+            at(w - eps) cylinder(d = cable_flare_d + 2 * c, h = 3);                            // on into the open pocket
         }
         // trimmed flat at the pocket floor: flares up and sideways, never down into the floor
         translate([-1, -1, cable_flare_floor]) cube([width + 2, depth_deep + 2, height]);

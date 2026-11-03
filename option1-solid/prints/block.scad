@@ -15,7 +15,7 @@ part = "block";                    // leave as is (the model also has a check mo
 // face_chamfer = 1.5;   // 45 degree bevel on the camera-face edges, mm; 0 = none
 
 // --- Wiring pocket (option 1 only) ---
-// block_pocket_depth = 17;   // depth behind the camera face, mm
+// block_pocket_depth = 17;   // pocket depth at its shallowest point, mm (back wall parallel to the block's back, as drawn)
 // cable_flare_d      = 15;   // funnel mouth, mm; trimmed flat at the pocket floor, so it never cuts into it
 // cable_flare_floor  = pocket_z_min;   // height of that flat trim (the pocket floor, 30)
 // cable_mouth_chamfer = 1.5;  // 45 degree chamfer on the funnel's rim at the pocket wall, mm; 0 = none
@@ -28,7 +28,7 @@ part = "block";                    // leave as is (the model also has a check mo
 
 // --- Check ---
 // min_screw_wall = 4;   // build.ps1 fails if the pocket or funnel comes closer than this (mm)
-//                       // to a screw hole; with the values above it's about 7 mm
+//                       // to a screw hole; with the values above it's about 5.5 mm
 
 // --- Fixed by the sketch: change these only in ../../mount_common.scad ---
 // They are shared by all four options, and the build fails if they're set here:

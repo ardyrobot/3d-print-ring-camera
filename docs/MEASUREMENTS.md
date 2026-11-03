@@ -27,7 +27,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Block](../option1-solid/stl/block.stl) | 55.00 × 49.79 × 110.00 | 257.10 | yes |
+| [Block](../option1-solid/stl/block.stl) | 55.00 × 49.79 × 110.00 | 254.73 | yes |
 
 ### Envelope
 
@@ -82,7 +82,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `block_pocket_depth` | 17 | chosen | behind the camera face, measured square to the face |
+| `block_pocket_depth` | 17 | chosen | shallowest depth behind the camera face |
 
 ### Cable hole flare
 
@@ -365,9 +365,9 @@ Source file: [`option4-pivot/option4_pivot.scad`](../option4-pivot/option4_pivot
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
 | [Base (with roof)](../option4-pivot/stl/base.stl) | 57.27 × 45.32 × 103.60 | 154.62 | yes |
-| [Shell](../option4-pivot/stl/shell.stl) | 57.27 × 105.20 × 28.14 | 39.07 | yes |
+| [Shell](../option4-pivot/stl/shell.stl) | 57.27 × 105.20 × 28.14 | 39.03 | yes |
 | [Washer](../option4-pivot/stl/washer.stl) | 13.02 × 9.28 × 4.90 | 0.29 | yes |
-| [Fit test (3 pieces, as laid out)](../option4-pivot/stl/fit_test.stl) | 82.93 × 71.75 × 28.14 | 39.33 | yes |
+| [Fit test (3 pieces, as laid out)](../option4-pivot/stl/fit_test.stl) | 82.93 × 71.75 × 28.14 | 39.28 | yes |
 
 ### Envelope
 
@@ -476,7 +476,8 @@ Source file: [`option4-pivot/option4_pivot.scad`](../option4-pivot/option4_pivot
 | `thread_p` | 0.8 | chosen | M5 coarse pitch |
 | `pivot_thread_l` | 15 | chosen | thread depth into the base (M5 x 20 screw engages ~13.6) |
 | `lock_thread_l` | 12 | chosen | thread depth into the base (M5 x 20 screw engages ~10.4) |
-| `pivot_head_d` | 8.5 | chosen | M5 socket-head cap screw (ISO 4762) |
+| `pivot_head_d` | 9.2 | chosen | M5 countersunk slotted screw head (ISO 2009), 90 degrees, flush in the plate (Cat 2026-11-02) |
+| `pivot_sink_clr` | 0.4 | chosen | countersink oversize so the head can sit flush |
 | `lock_head_d` | 16 | chosen | M5 knurled thumb screw head, typical (check the one you buy) |
 
 ### Scale
