@@ -27,7 +27,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Block](../option1-solid/stl/block.stl) | 55.00 × 49.79 × 110.00 | 257.00 | yes |
+| [Block](../option1-solid/stl/block.stl) | 55.00 × 49.79 × 110.00 | 257.13 | yes |
 
 ### Envelope
 
@@ -89,6 +89,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
 | `cable_flare_d` | 15 | chosen | mouth diameter at the pocket's back wall |
+| `cable_flare_floor` | pocket_z_min | chosen | height the funnel is trimmed flat at (the pocket floor) |
 | `cable_flare_len` | 8 | chosen | length of the funnel along the hole; longer = gentler bend |
 
 ### Checks

@@ -36,8 +36,11 @@ block_pocket_depth = 17;   // [chosen] behind the camera face, measured square t
 /* [Cable hole flare] */
 // A funnel where the cable hole opens into the pocket, so the wire bends gently
 // instead of turning a sharp 90 degree edge (Cat, 2026-11-02). It must stay
-// min_screw_wall clear of the screw holes; build.ps1 checks that.
+// min_screw_wall clear of the screw holes, and must not cut into the pocket floor
+// (Cat, 2026-11-02); build.ps1 checks both. The funnel is trimmed flat at the
+// pocket floor, so it flares on the top and sides and stops at the floor.
 cable_flare_d   = 15;  // [chosen] mouth diameter at the pocket's back wall
+cable_flare_floor = pocket_z_min;  // [chosen] height the funnel is trimmed flat at (the pocket floor)
 cable_flare_len = 8;   // [chosen] length of the funnel along the hole; longer = gentler bend
 
 /* [Checks] */
@@ -111,10 +114,19 @@ module cable_hole() {
 // over cable_flare_len up to that wall (and keep widening into the open pocket).
 module cable_flare() {
     wall_y = depth_deep - cable_deep_inset * tan(face_angle) - block_pocket_depth / cos(face_angle);
-    grow = (cable_flare_d - cable_d) / 2 / cable_flare_len;   // radius gained per mm
-    over = 3;                                                  // carry on past the wall
-    translate([cable_deep_inset, wall_y - cable_flare_len, cable_z]) rotate([-90, 0, 0])
-        cylinder(d1 = cable_d, d2 = cable_flare_d + 2 * grow * over, h = cable_flare_len + over);
+    intersection() {
+        translate([cable_deep_inset, wall_y - cable_flare_len, cable_z]) rotate([-90, 0, 0]) {
+            cylinder(d1 = cable_d, d2 = cable_flare_d, h = cable_flare_len);
+            translate([0, 0, cable_flare_len - eps]) cylinder(d = cable_flare_d, h = 3);   // into the open pocket
+        }
+        // trimmed flat at the pocket floor: flares up and sideways, never down into the floor
+        translate([-1, -1, cable_flare_floor]) cube([width + 2, depth_deep + 2, height]);
+    }
+}
+
+// Everything below the pocket floor: the funnel must not reach into it
+module below_floor() {
+    translate([-1, -1, -1]) cube([width + 2, depth_deep + 2, pocket_z_min - 0.05 + 1]);
 }
 
 // Keep-out around each screw hole: every cut must stay min_screw_wall away
@@ -147,4 +159,6 @@ if (part == "block") {
 } else if (part == "clash") {
     // Must render EMPTY: the pocket or flare within min_screw_wall of a screw hole
     intersection() { union() { pocket(); cable_flare(); } screw_keepout(); }
+    // ... and the funnel cutting into the pocket floor
+    intersection() { cable_flare(); below_floor(); }
 }

@@ -62,12 +62,16 @@ Back face (cable entry): [option1-solid/docs/block-back.png](option1-solid/docs/
 - **Sizes (Cat, 2026-11-02):**
   - **Block:** 50 mm deep at the mounting side (the sketch scaled to 46).
   - **Wiring pocket:** 17 mm deep. Options 2–4 keep 15 mm.
-  - **Cable hole:** opens into the pocket through a 15 mm funnel, so the
-    wire bends gently instead of round a sharp edge.
+  - **Cable hole:** opens into the pocket through a funnel that widens from
+    8 to 15 mm, so the wire bends gently. The funnel is trimmed flat at the
+    pocket floor: it flares on the top and sides, and stops at the floor
+    instead of cutting into it. The build checks that.
   - **Screws:** stay 19.5 mm from the back.
-- **Checked by `build.ps1`:** the pocket and the funnel keep at least 4 mm
-  of plastic around both screw holes (about 7 mm as built, calculated). A
-  must-fail test proves the check works.
+- **Checked by `build.ps1`:**
+  - The pocket and the funnel keep at least 4 mm of plastic around both
+    screw holes (about 7 mm as built).
+  - The funnel doesn't cut into the pocket floor.
+  - A must-fail test for each proves the check can fail.
 - **Tinkercad:** Import (top right) → choose `option1-solid/stl/block.stl` → units mm.
 - **Slicer:** print lying on the **back face** (flat, 55 × 110). In that
   position the pocket opens upward and no supports should be needed. Not yet
@@ -405,9 +409,9 @@ edit the `.scad` file and rebuild; don't edit the table.
       the cable hole position and the screw positions against your original
       intent. They were measured off the sketch.
 - [ ] **Clearance:** the cable hole's lower edge sits 1 mm above the pocket's
-      bottom wall. In option 1 the 15 mm funnel now opens slightly below the
-      pocket floor (a small notch). Fine for printing; check that the wire
-      seats well on the prototype.
+      bottom wall. In option 1 the funnel is trimmed flat at the pocket
+      floor. Fine for printing; check that the wire seats well on the
+      prototype.
 - [ ] **Test print:** print, fit to the Ring and the mounting surface, then
       record the results here.
 - [ ] **Adjustable: fit test.** Print `option2-hinge/stl/fit_test.stl` in Eco-ABS,

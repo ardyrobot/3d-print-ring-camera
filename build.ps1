@@ -69,6 +69,9 @@ if (-not (Clash $model @{ part = '\"clash\"' })) { throw 'Option 1 pocket or cab
 Write-Host 'option 1 screw-wall check: clear'
 if (Clash $model @{ part = '\"clash\"'; min_screw_wall = 9 }) { throw 'Option 1 screw-wall check cannot fail' }
 Write-Host 'option 1 screw-wall must-fail test: blocked'
+# A funnel trimmed 2 mm below the floor must cut into it and be caught
+if (Clash $model @{ part = '\"clash\"'; cable_flare_floor = 28 }) { throw 'Option 1 pocket-floor check cannot fail' }
+Write-Host 'option 1 pocket-floor must-fail test: blocked'
 
 # ---- Option 2: adjustable hinge ----
 $opt = 'option2-hinge'; $model = "$opt/option2_hinge.scad"
