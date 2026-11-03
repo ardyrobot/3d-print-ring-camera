@@ -18,6 +18,7 @@ part = "block";                    // leave as is (the model also has a check mo
 // block_pocket_depth = 17;   // depth behind the camera face, mm
 // cable_flare_d      = 15;   // funnel mouth, mm; trimmed flat at the pocket floor, so it never cuts into it
 // cable_flare_floor  = pocket_z_min;   // height of that flat trim (the pocket floor, 30)
+// cable_mouth_chamfer = 1.5;  // 45 degree chamfer on the funnel's rim at the pocket wall, mm; 0 = none
 // cable_flare_len    = 8;    // funnel length along the hole, mm; longer = gentler bend for the wire
 
 // --- Mounting screws (#8 flat head, through the side) ---

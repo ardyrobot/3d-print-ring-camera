@@ -41,6 +41,7 @@ block_pocket_depth = 17;   // [chosen] behind the camera face, measured square t
 // pocket floor, so it flares on the top and sides and stops at the floor.
 cable_flare_d   = 15;  // [chosen] mouth diameter at the pocket's back wall
 cable_flare_floor = pocket_z_min;  // [chosen] height the funnel is trimmed flat at (the pocket floor)
+cable_mouth_chamfer = 1.5;         // [chosen] 45 degree chamfer on the funnel's rim at the pocket wall, so no sharp edge; 0 = none
 cable_flare_len = 8;   // [chosen] length of the funnel along the hole; longer = gentler bend
 
 /* [Checks] */
@@ -117,7 +118,11 @@ module cable_flare() {
     intersection() {
         translate([cable_deep_inset, wall_y - cable_flare_len, cable_z]) rotate([-90, 0, 0]) {
             cylinder(d1 = cable_d, d2 = cable_flare_d, h = cable_flare_len);
-            translate([0, 0, cable_flare_len - eps]) cylinder(d = cable_flare_d, h = 3);   // into the open pocket
+            // 45 degree chamfer on the rim, ending at the wall
+            c = cable_mouth_chamfer;
+            if (c > 0) translate([0, 0, cable_flare_len - c])
+                cylinder(d1 = cable_flare_d, d2 = cable_flare_d + 2 * c, h = c);
+            translate([0, 0, cable_flare_len - eps]) cylinder(d = cable_flare_d + 2 * c, h = 3);   // into the open pocket
         }
         // trimmed flat at the pocket floor: flares up and sideways, never down into the floor
         translate([-1, -1, cable_flare_floor]) cube([width + 2, depth_deep + 2, height]);
