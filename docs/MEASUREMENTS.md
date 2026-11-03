@@ -27,7 +27,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Part | X × Y × Z (mm) | Volume (cm³) | Watertight |
 |---|---|---|---|
-| [Block](../option1-solid/stl/block.stl) | 55.00 × 45.79 × 110.00 | 230.58 | yes |
+| [Block](../option1-solid/stl/block.stl) | 55.00 × 49.79 × 110.00 | 257.00 | yes |
 
 ### Envelope
 
@@ -74,7 +74,7 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `depth_deep` | 46 | scaled | depth at the deep (mounting) side |
+| `depth_deep` | 50 | chosen | depth at the deep (mounting) side (46 scaled off the sketch; Cat 2026-11-02: 50, more room behind the pocket) |
 | `face_angle` | 8 | chosen | degrees the camera face is turned |
 | `face_chamfer` | 1.5 | chosen | 45 degree bevel on the camera-face edges; 0 = none |
 
@@ -82,14 +82,27 @@ Source file: [`option1-solid/option1_solid.scad`](../option1-solid/option1_solid
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
-| `block_pocket_depth` | 20 | chosen | behind the camera face, measured square to the face |
+| `block_pocket_depth` | 17 | chosen | behind the camera face, measured square to the face |
+
+### Cable hole flare
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `cable_flare_d` | 15 | chosen | mouth diameter at the pocket's back wall |
+| `cable_flare_len` | 8 | chosen | length of the funnel along the hole; longer = gentler bend |
+
+### Checks
+
+| Parameter | Value | Source | Notes |
+|---|---|---|---|
+| `min_screw_wall` | 4 | chosen | plastic required between a screw hole and the pocket or flare |
 
 ### Block mounting screws
 
 | Parameter | Value | Source | Notes |
 |---|---|---|---|
 | `screw_y` | 19.5 | scaled | distance from back face (position not fixed; size is shared) |
-| `screw_z` | [22, 88] | scaled | heights |
+| `screw_z` | [22, 88] | scaled | heights (kept, Cat 2026-11-02: lower would put the head bevel near the edge) |
 | `screw_head_recess` | 0 | chosen | extra counterbore depth to shorten screws |
 
 ## Option 2: adjustable hinge

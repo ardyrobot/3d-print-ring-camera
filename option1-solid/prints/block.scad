@@ -1,5 +1,7 @@
 include <../option1_solid.scad>   // the model; keep this line first (see note at the bottom)
 
+part = "block";                    // leave as is (the model also has a check mode)
+
 // ================== OPTION 1 · SOLID BLOCK · VARIABLES ==================
 // To change this print: delete the // at the start of a line, change the
 // number, then in OpenSCAD press F6 and File > Export > STL (or run build.ps1,
@@ -9,16 +11,22 @@ include <../option1_solid.scad>   // the model; keep this line first (see note a
 
 // --- Block ---
 // face_angle   = 8;     // degrees the camera face is turned (the mount's angle)
-// depth_deep   = 46;    // depth at the deep (mounting) side, mm
+// depth_deep   = 50;    // depth at the deep (mounting) side, mm
 // face_chamfer = 1.5;   // 45 degree bevel on the camera-face edges, mm; 0 = none
 
 // --- Wiring pocket (option 1 only) ---
-// block_pocket_depth = 20;   // depth behind the camera face, mm (keep under ~35 for a 4 mm back wall)
+// block_pocket_depth = 17;   // depth behind the camera face, mm
+// cable_flare_d      = 15;   // funnel where the cable hole meets the pocket: mouth diameter, mm
+// cable_flare_len    = 8;    // funnel length along the hole, mm; longer = gentler bend for the wire
 
 // --- Mounting screws (#8 flat head, through the side) ---
 // screw_y           = 19.5;      // distance from the back face, mm
 // screw_z           = [22, 88];  // heights of the two screws, mm
 // screw_head_recess = 0;         // sink the heads deeper (mm) to use shorter screws
+
+// --- Check ---
+// min_screw_wall = 4;   // build.ps1 fails if the pocket or funnel comes closer than this (mm)
+//                       // to a screw hole; with the values above it's about 7 mm
 
 // --- Fixed by the sketch: change these only in ../../mount_common.scad ---
 // They are shared by all four options, and the build fails if they're set here:

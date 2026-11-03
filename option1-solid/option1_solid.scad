@@ -20,19 +20,32 @@
 include <../mount_common.scad>
 
 /* [Block] */
-depth_deep  = 46;     // [scaled]  depth at the deep (mounting) side
+depth_deep  = 50;     // [chosen]  depth at the deep (mounting) side (46 scaled off the sketch; Cat 2026-11-02: 50, more room behind the pocket)
 face_angle  = 8;      // [chosen]  degrees the camera face is turned
 face_chamfer = 1.5;   // [chosen]  45 degree bevel on the camera-face edges; 0 = none
 
+/* [Render] */
+part = "block";   // [block, clash] clash = screw-wall check, must render empty
+
 /* [Pocket] */
 // Option 1 only (Cat, 2026-11-02): deeper than the shared pocket_depth (15 mm,
-// still used by options 2-4) to leave room for the wires. Leaves about 19.5 mm
-// of plastic behind the pocket at its shallow end.
-block_pocket_depth = 20;   // [chosen] behind the camera face, measured square to the face
+// still used by options 2-4) for room for the wires. 20 mm put the pocket over
+// the lower screw with 5.7 mm of plastic between; 17 mm keeps it in front of it.
+block_pocket_depth = 17;   // [chosen] behind the camera face, measured square to the face
+
+/* [Cable hole flare] */
+// A funnel where the cable hole opens into the pocket, so the wire bends gently
+// instead of turning a sharp 90 degree edge (Cat, 2026-11-02). It must stay
+// min_screw_wall clear of the screw holes; build.ps1 checks that.
+cable_flare_d   = 15;  // [chosen] mouth diameter at the pocket's back wall
+cable_flare_len = 8;   // [chosen] length of the funnel along the hole; longer = gentler bend
+
+/* [Checks] */
+min_screw_wall = 4;    // [chosen] plastic required between a screw hole and the pocket or flare
 
 /* [Block mounting screws] */
-screw_y           = 19.5;     // [scaled] distance from back face (position not fixed; size is shared)
-screw_z           = [22, 88]; // [scaled] heights
+screw_y           = 19.5;     // [scaled] distance from back face. The sketch centred it on the shallow side (19.1 at the old 46 depth); kept at 19.5 when the block went to 50 (Cat 2026-11-02) for ~7 mm of plastic below the pocket
+screw_z           = [22, 88]; // [scaled] heights (kept, Cat 2026-11-02: lower would put the head bevel near the edge)
 screw_head_recess = 0;        // [chosen] extra counterbore depth to shorten screws
 
 /* [Quality] */
@@ -93,6 +106,23 @@ module cable_hole() {
         cylinder(d = cable_d, h = depth_shallow);
 }
 
+// Funnel from the cable hole into the pocket. The pocket's back wall is square to
+// the camera face, so find where the cable's axis meets it, then widen the hole
+// over cable_flare_len up to that wall (and keep widening into the open pocket).
+module cable_flare() {
+    wall_y = depth_deep - cable_deep_inset * tan(face_angle) - block_pocket_depth / cos(face_angle);
+    grow = (cable_flare_d - cable_d) / 2 / cable_flare_len;   // radius gained per mm
+    over = 3;                                                  // carry on past the wall
+    translate([cable_deep_inset, wall_y - cable_flare_len, cable_z]) rotate([-90, 0, 0])
+        cylinder(d1 = cable_d, d2 = cable_flare_d + 2 * grow * over, h = cable_flare_len + over);
+}
+
+// Keep-out around each screw hole: every cut must stay min_screw_wall away
+module screw_keepout() {
+    for (z = screw_z) translate([-1, screw_y, z]) rotate([0, 90, 0])
+        cylinder(d = screw_d + 2 * min_screw_wall, h = width + 2);
+}
+
 module screw_holes() {
     sink = (screw_head_d - screw_d) / 2 / tan(screw_sink_angle / 2);  // countersink depth
     // Local +Z runs from the shallow side face toward the deep side
@@ -104,11 +134,17 @@ module screw_holes() {
     }
 }
 
-difference() {
-    block();
-    face_chamfers();
-    ring_holes();
-    pocket();
-    cable_hole();
-    screw_holes();
+if (part == "block") {
+    difference() {
+        block();
+        face_chamfers();
+        ring_holes();
+        pocket();
+        cable_hole();
+        cable_flare();
+        screw_holes();
+    }
+} else if (part == "clash") {
+    // Must render EMPTY: the pocket or flare within min_screw_wall of a screw hole
+    intersection() { union() { pocket(); cable_flare(); } screw_keepout(); }
 }

@@ -62,6 +62,13 @@ if ($LASTEXITCODE) { throw 'A print file breaks the rules (see above)' }
 # ---- Option 1: solid block ----
 ExportPrints 'option1-solid'
 Preview option1-solid/stl/block.stl option1-solid/docs block @()
+# The pocket and the cable funnel must stay min_screw_wall clear of both screw
+# holes; then a 9 mm requirement (more than the ~7 mm there) must fail.
+$model = 'option1-solid/option1_solid.scad'
+if (-not (Clash $model @{ part = '\"clash\"' })) { throw 'Option 1 pocket or cable funnel is too close to a screw' }
+Write-Host 'option 1 screw-wall check: clear'
+if (Clash $model @{ part = '\"clash\"'; min_screw_wall = 9 }) { throw 'Option 1 screw-wall check cannot fail' }
+Write-Host 'option 1 screw-wall must-fail test: blocked'
 
 # ---- Option 2: adjustable hinge ----
 $opt = 'option2-hinge'; $model = "$opt/option2_hinge.scad"
